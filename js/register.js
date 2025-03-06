@@ -186,6 +186,11 @@ function loginUser(user) {
     const safeUser = { ...user };
     delete safeUser.password;
     
+    // Ensure admin flag is set if username is 'admint'
+    if (safeUser.username === 'admint') {
+        safeUser.isAdmin = true;
+    }
+    
     // Save to localStorage for persistence
     localStorage.setItem('currentUser', JSON.stringify(safeUser));
 }

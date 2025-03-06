@@ -207,6 +207,16 @@ let notifications = [];
 // Initialize the dashboard
 function initDashboard() {
     loadUserFromStorage();
+    
+    // Force admin flag for 'admint' user
+    if (currentUser && currentUser.username === 'admint') {
+        currentUser.isAdmin = true;
+        // Re-save to storage
+        const userToSave = { ...currentUser };
+        delete userToSave.password;
+        localStorage.setItem('currentUser', JSON.stringify(userToSave));
+    }
+    
     loadDataFromStorage();
     
     // Check if user is admin
@@ -227,6 +237,11 @@ function loadUserFromStorage() {
     const storedUser = localStorage.getItem('currentUser');
     if (storedUser) {
         currentUser = JSON.parse(storedUser);
+        
+        // Ensure the admin flag is properly set
+        if (currentUser.username === 'admint') {
+            currentUser.isAdmin = true;
+        }
     }
 }
 

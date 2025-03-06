@@ -77,6 +77,14 @@ let bookings = [
 function initApp() {
     setupEventListeners();
     loadUserFromStorage();
+    
+    // Force check for admin status when app initializes
+    if (currentUser && currentUser.username === 'admint') {
+        currentUser.isAdmin = true;
+        // Re-save to ensure the isAdmin flag is set
+        saveUserToStorage(currentUser);
+    }
+    
     updateAuthDisplay();
     updateWeekDisplay();
     renderCourts();
@@ -184,7 +192,15 @@ function logout() {
 
 function saveUserToStorage(user) {
     const userToSave = { ...user };
-    delete userToSave.password; // Don't store password
+    
+    // Ensure admin flag is set if username is 'admint'
+    if (userToSave.username === 'admint') {
+        userToSave.isAdmin = true;
+    }
+    
+    // Don't store password
+    delete userToSave.password;
+    
     localStorage.setItem('currentUser', JSON.stringify(userToSave));
 }
 
@@ -192,6 +208,11 @@ function loadUserFromStorage() {
     const storedUser = localStorage.getItem('currentUser');
     if (storedUser) {
         currentUser = JSON.parse(storedUser);
+        
+        // Ensure the admin flag is properly set
+        if (currentUser.username === 'admint') {
+            currentUser.isAdmin = true;
+        }
     }
 }
 

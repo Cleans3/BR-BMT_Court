@@ -1,5 +1,10 @@
 // Check if user is admin
 function isUserAdmin() {
+    // Always ensure that username 'admint' has admin privileges
+    if (currentUser && currentUser.username === 'admint') {
+        currentUser.isAdmin = true;
+        return true;
+    }
     return currentUser && currentUser.isAdmin === true;
 }// DOM Elements
 const bookingSummaryTable = document.getElementById('bookingSummaryTable');
@@ -54,6 +59,11 @@ function loadUserFromStorage() {
     const storedUser = localStorage.getItem('currentUser');
     if (storedUser) {
         currentUser = JSON.parse(storedUser);
+        
+        // Ensure the admin flag is properly set
+        if (currentUser.username === 'admint') {
+            currentUser.isAdmin = true;
+        }
     } else {
         // Not logged in, redirect to login
         alert('Please log in to complete your booking.');
