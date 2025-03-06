@@ -43,10 +43,15 @@ for (let hour = 7; hour <= 24; hour += 3) {
 displayTimeSlots.push('1:00');
 
 // Mock database for users and bookings
-let users = [
+let users = JSON.parse(localStorage.getItem('users')) || [
     { id: 1, username: 'admint', password: 'minhbeo', name: 'Admin User', isAdmin: true },
     { id: 2, username: 'user1', password: 'password1', name: 'John Doe', isAdmin: false }
 ];
+
+// Save initial users to localStorage if not already there
+if (!localStorage.getItem('users')) {
+    localStorage.setItem('users', JSON.stringify(users));
+}
 
 let bookings = [
     // Example bookings
@@ -128,6 +133,13 @@ function handleLogin(e) {
         updateAuthDisplay();
         closeLoginModal();
         renderCourts(); // Re-render to show user's bookings
+        
+        // Alert user if they're an admin
+        if (user.isAdmin) {
+            setTimeout(() => {
+                alert('Welcome Admin! You now have access to the Admin Panel.');
+            }, 500);
+        }
     } else {
         alert('Invalid username or password');
     }

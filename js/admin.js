@@ -286,8 +286,9 @@ function updateAuthDisplay() {
     if (currentUser) {
         authContainer.innerHTML = `
             <div class="user-info">
-                <span class="user-name">Welcome, ${currentUser.name}</span>
+                <span class="user-name">Admin: ${currentUser.name}</span>
             </div>
+            <a href="../index.html" class="btn btn-primary">Back to Site</a>
             <button class="btn btn-danger" id="logoutBtn">Logout</button>
         `;
         document.getElementById('logoutBtn').addEventListener('click', logout);

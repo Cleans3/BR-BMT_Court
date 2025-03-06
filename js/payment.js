@@ -1,4 +1,7 @@
-// DOM Elements
+// Check if user is admin
+function isUserAdmin() {
+    return currentUser && currentUser.isAdmin === true;
+}// DOM Elements
 const bookingSummaryTable = document.getElementById('bookingSummaryTable');
 const subtotalPrice = document.getElementById('subtotalPrice');
 const bookingFee = document.getElementById('bookingFee');
@@ -15,6 +18,9 @@ const BOOKING_FEE = 2.00;     // $2 booking fee
 let currentUser = null;
 let selectedSlots = [];
 let bookings = [];
+
+// Additional DOM Elements
+const returnHomeButton = document.getElementById('returnHomeButton');
 
 // Initialize the page
 function initPaymentPage() {
@@ -36,6 +42,12 @@ function initPaymentPage() {
     // Set up event listeners
     backButton.addEventListener('click', navigateBackToHome);
     confirmButton.addEventListener('click', confirmBooking);
+    returnHomeButton.addEventListener('click', navigateBackToHome);
+}
+
+// Check if user is admin
+function isUserAdmin() {
+    return currentUser && currentUser.isAdmin === true;
 }
 
 function loadUserFromStorage() {
@@ -67,12 +79,23 @@ function loadBookingsFromStorage() {
 
 function updateAuthDisplay() {
     if (currentUser) {
-        authContainer.innerHTML = `
-            <div class="user-info">
-                <span class="user-name">Welcome, ${currentUser.name}</span>
-            </div>
-            <button class="btn btn-danger" id="logoutBtn">Logout</button>
-        `;
+        // Different display for admin vs regular user
+        if (isUserAdmin()) {
+            authContainer.innerHTML = `
+                <div class="user-info">
+                    <span class="user-name">Admin: ${currentUser.name}</span>
+                </div>
+                <a href="admin/dashboard.html" class="btn admin-btn">Admin Panel</a>
+                <button class="btn btn-danger" id="logoutBtn">Logout</button>
+            `;
+        } else {
+            authContainer.innerHTML = `
+                <div class="user-info">
+                    <span class="user-name">Welcome, ${currentUser.name}</span>
+                </div>
+                <button class="btn btn-danger" id="logoutBtn">Logout</button>
+            `;
+        }
         document.getElementById('logoutBtn').addEventListener('click', logout);
     } else {
         authContainer.innerHTML = `
@@ -144,14 +167,21 @@ function confirmBooking() {
     // Generate new booking IDs
     let nextBookingId = bookings.length > 0 ? Math.max(...bookings.map(b => b.id)) + 1 : 1;
     
+    const now = new Date();
+    const timestamp = now.toISOString();
+    
     // Create booking entries
     const newBookings = selectedSlots.map(slot => {
         return {
             id: nextBookingId++,
             userId: currentUser.id,
+            userName: currentUser.name,
             courtId: slot.courtId,
+            courtName: `Court ${slot.courtId}`,
             date: slot.date,
-            time: slot.time
+            time: slot.time,
+            status: 'pending',
+            createdAt: timestamp
         };
     });
     
@@ -161,14 +191,53 @@ function confirmBooking() {
     // Save to localStorage
     localStorage.setItem('bookings', JSON.stringify(bookings));
     
-    // Clear session storage
+    // Create notification for admin
+    createAdminNotification(newBookings);
+    
+    // Clear session storage for selected slots to prevent duplicate bookings
     sessionStorage.removeItem('selectedSlots');
     
-    // Show success message
-    alert('Your booking has been confirmed! Please call the provided number to arrange payment.');
+    // Update UI to show confirmation message, but don't redirect
+    document.getElementById('confirmationStep').classList.remove('hidden');
+    document.getElementById('bookingStep').classList.add('hidden');
     
-    // Redirect to home
-    window.location.href = 'index.html';
+    // Update the confirmation details
+    const confirmationDetails = document.getElementById('confirmationDetails');
+    const totalBookedSlots = newBookings.length;
+    const firstSlot = newBookings[0];
+    
+    confirmationDetails.innerHTML = `
+        <p>You've successfully booked <strong>${totalBookedSlots}</strong> slots!</p>
+        <p>Your booking reference number: <strong>REF-${firstSlot.id}</strong></p>
+        <p>Please call <strong>0383533171</strong> to confirm your payment.</p>
+        <p>Your booking will be held for 1 hour pending payment confirmation.</p>
+    `;
+}
+
+function createAdminNotification(newBookings) {
+    // Get existing notifications or initialize empty array
+    const notifications = JSON.parse(localStorage.getItem('adminNotifications')) || [];
+    
+    // Group bookings by court and date for a cleaner notification
+    const booking = newBookings[0]; // Get the first booking for basic info
+    
+    const notification = {
+        id: Date.now(), // Use timestamp as ID
+        userId: currentUser.id,
+        userName: currentUser.name,
+        type: 'new_booking',
+        title: 'New Booking',
+        message: `${currentUser.name} has booked ${newBookings.length} slot(s) starting on ${formatDisplayDate(booking.date)} at ${formatDisplayTime(booking.time)}`,
+        bookingIds: newBookings.map(b => b.id),
+        createdAt: new Date().toISOString(),
+        isRead: false
+    };
+    
+    // Add to beginning of array (newest first)
+    notifications.unshift(notification);
+    
+    // Store in localStorage
+    localStorage.setItem('adminNotifications', JSON.stringify(notifications));
 }
 
 // Helper functions
