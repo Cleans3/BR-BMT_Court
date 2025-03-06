@@ -81,12 +81,21 @@ function initApp() {
     updateWeekDisplay();
     renderCourts();
     
-    // Show admin notice if user is admin
+    // Check if admin notification should be shown
     if (isUserAdmin()) {
         const adminNotice = document.getElementById('adminNotice');
         if (adminNotice) {
             adminNotice.style.display = 'block';
         }
+    }
+
+    // Force localStorage to save the admin user if not present
+    const storedUsers = JSON.parse(localStorage.getItem('users')) || [];
+    const adminExists = storedUsers.some(user => user.username === 'admint' && user.isAdmin === true);
+    
+    if (!adminExists) {
+        storedUsers.push({ id: storedUsers.length + 1, username: 'admint', password: 'minhbeo', name: 'Admin User', isAdmin: true });
+        localStorage.setItem('users', JSON.stringify(storedUsers));
     }
 }
 

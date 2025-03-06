@@ -220,16 +220,33 @@ function createAdminNotification(newBookings) {
     // Get existing notifications or initialize empty array
     const notifications = JSON.parse(localStorage.getItem('adminNotifications')) || [];
     
-    // Group bookings by court and date for a cleaner notification
-    const booking = newBookings[0]; // Get the first booking for basic info
+    // Group bookings by date for a cleaner notification
+    const groupedBookings = {};
     
+    newBookings.forEach(booking => {
+        if (!groupedBookings[booking.date]) {
+            groupedBookings[booking.date] = {
+                courts: [],
+                times: []
+            };
+        }
+        
+        if (!groupedBookings[booking.date].courts.includes(booking.courtName || `Court ${booking.courtId}`)) {
+            groupedBookings[booking.date].courts.push(booking.courtName || `Court ${booking.courtId}`);
+        }
+        
+        groupedBookings[booking.date].times.push(formatDisplayTime(booking.time));
+    });
+    
+    // Create a consolidated notification
     const notification = {
         id: Date.now(), // Use timestamp as ID
         userId: currentUser.id,
         userName: currentUser.name,
         type: 'new_booking',
         title: 'New Booking',
-        message: `${currentUser.name} has booked ${newBookings.length} slot(s) starting on ${formatDisplayDate(booking.date)} at ${formatDisplayTime(booking.time)}`,
+        message: `${currentUser.name} has booked ${newBookings.length} slots`,
+        detailedMessage: createDetailedBookingMessage(groupedBookings),
         bookingIds: newBookings.map(b => b.id),
         createdAt: new Date().toISOString(),
         isRead: false
@@ -240,6 +257,22 @@ function createAdminNotification(newBookings) {
     
     // Store in localStorage
     localStorage.setItem('adminNotifications', JSON.stringify(notifications));
+}
+
+function createDetailedBookingMessage(groupedBookings) {
+    let message = '<div class="booking-summary-table">';
+    message += '<table><thead><tr><th>Date</th><th>Courts</th><th>Times</th></tr></thead><tbody>';
+    
+    for (const [date, details] of Object.entries(groupedBookings)) {
+        message += `<tr>
+            <td>${formatDisplayDate(date)}</td>
+            <td>${details.courts.join(', ')}</td>
+            <td>${details.times.join(', ')}</td>
+        </tr>`;
+    }
+    
+    message += '</tbody></table></div>';
+    return message;
 }
 
 // Helper functions

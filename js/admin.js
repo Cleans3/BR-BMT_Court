@@ -43,6 +43,8 @@ function renderNotifications() {
                         <span class="notification-time">${timeAgo}</span>
                     </div>
                     <div class="notification-content">${notification.message}</div>
+                    ${notification.detailedMessage ? 
+                        `<div class="notification-details">${notification.detailedMessage}</div>` : ''}
                     <div class="notification-actions">
                         <button class="btn-mark-read" onclick="markNotificationAsRead(${notification.id})">
                             Mark as ${notification.isRead ? 'unread' : 'read'}
@@ -373,6 +375,8 @@ function renderAllNotificationsList() {
                         <span class="notification-time" title="${formattedDate}">${timeAgo}</span>
                     </div>
                     <div class="notification-content">${notification.message}</div>
+                    ${notification.detailedMessage ? 
+                        `<div class="notification-details">${notification.detailedMessage}</div>` : ''}
                     <div class="notification-actions">
                         <button class="btn btn-sm btn-primary" onclick="markNotificationAsRead(${notification.id})">
                             Mark as ${notification.isRead ? 'unread' : 'read'}
