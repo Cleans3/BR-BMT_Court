@@ -12,11 +12,14 @@
         <nav>
             <ul>
                 <li><a href="index.html">Home</a></li>
-                <li><a href="#">Courts</a></li>
-                <li><a href="#">Pricing</a></li>
-                <li><a href="#">Contact</a></li>
+                <li><a href="courts.html">Courts</a></li>
+                <li><a href="pricing.html">Pricing</a></li>
+                <li><a href="contact.html">Contact</a></li>
             </ul>
         </nav>
+        <div class="auth-container" id="authContainer">
+            <!-- Will be populated by JavaScript -->
+        </div>
     </header>
     
     <div class="main-container">
@@ -30,45 +33,28 @@
                     <thead>
                         <tr>
                             <th>Court</th>
-                            <th>Day</th>
+                            <th>Date</th>
                             <th>Time</th>
                             <th>Price</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td>Court 1</td>
-                            <td>Monday</td>
-                            <td>10:00 - 10:30</td>
-                            <td>$15.00</td>
-                        </tr>
-                        <tr>
-                            <td>Court 1</td>
-                            <td>Monday</td>
-                            <td>10:30 - 11:00</td>
-                            <td>$15.00</td>
-                        </tr>
-                        <tr>
-                            <td>Court 1</td>
-                            <td>Monday</td>
-                            <td>11:00 - 11:30</td>
-                            <td>$15.00</td>
-                        </tr>
+                    <tbody id="bookingSummaryTable">
+                        <!-- Will be populated by JavaScript -->
                     </tbody>
                 </table>
                 
                 <div class="price-summary">
                     <div class="price-row">
                         <span>Subtotal:</span>
-                        <span>$45.00</span>
+                        <span id="subtotalPrice">$0.00</span>
                     </div>
                     <div class="price-row">
                         <span>Booking Fee:</span>
-                        <span>$2.00</span>
+                        <span id="bookingFee">$2.00</span>
                     </div>
                     <div class="price-row total-price">
                         <span>Total:</span>
-                        <span>$47.00</span>
+                        <span id="totalPrice">$0.00</span>
                     </div>
                 </div>
             </div>
@@ -78,18 +64,19 @@
                 
                 <div class="contact-info">
                     <p class="instruction">Please call the following number to confirm your booking and make payment:</p>
-                    <div class="phone-number">(555) 123-4567</div>
+                    <div class="phone-number">0383533171</div>
                     <p class="instruction">Have your booking details ready. An employee will assist you with confirming your booking and processing payment.</p>
                     <p class="instruction"><strong>Note:</strong> Your booking will be held for 1 hour. If not confirmed within this time, it will be automatically cancelled.</p>
                 </div>
             </div>
             
             <div class="action-buttons">
-                <button class="btn btn-back">Back to Home</button>
-                <button class="btn btn-primary">Email Booking Details</button>
+                <button class="btn btn-back" id="backButton">Back to Home</button>
+                <button class="btn btn-primary" id="confirmButton">Confirm Booking</button>
             </div>
         </div>
     </div>
+    
     <script src="js/payment.js"></script>
 </body>
 </html>

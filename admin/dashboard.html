@@ -3,49 +3,230 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Employee Dashboard - Badminton Court Booking</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <title>Admin Dashboard - Badminton Court Booking</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        /* Admin-specific styles */
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 2rem;
+        }
+        
+        .sidebar {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar-nav {
+            list-style: none;
+        }
+        
+        .sidebar-nav li {
+            margin-bottom: 1rem;
+        }
+        
+        .sidebar-nav a {
+            display: block;
+            padding: 0.75rem 1rem;
+            color: var(--text-color);
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+        
+        .sidebar-nav a:hover {
+            background-color: var(--light-bg);
+        }
+        
+        .sidebar-nav a.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .content-area {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .section-title {
+            font-size: 1.25rem;
+            color: var(--secondary-color);
+        }
+        
+        .pending-bookings {
+            margin-bottom: 2rem;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        th {
+            background-color: var(--light-bg);
+            font-weight: bold;
+        }
+        
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .status-pending {
+            background-color: #f39c12;
+            color: white;
+        }
+        
+        .status-confirmed {
+            background-color: #2ecc71;
+            color: white;
+        }
+        
+        .status-cancelled {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .day-selector {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .day-tab {
+            padding: 0.5rem 1rem;
+            background-color: var(--light-bg);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .day-tab.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+    </style>
 </head>
 <body>
     <header>
         <div class="logo">BadmintonBooking</div>
         <nav>
             <ul>
-                <li><a href="#">Dashboard</a></li>
-                <li><a href="#">Courts</a></li>
-                <li><a href="#">Customers</a></li>
-                <li><a href="#">Reports</a></li>
+                <li><a href="../index.html">Home</a></li>
+                <li><a href="dashboard.html" class="active">Dashboard</a></li>
+                <li><a href="reports.html">Reports</a></li>
+                <li><a href="settings.html">Settings</a></li>
             </ul>
         </nav>
-        <div class="employee-info">
-            <span class="employee-name">Staff User</span>
-            <button class="btn btn-primary">Logout</button>
+        <div class="auth-container" id="authContainer">
+            <!-- Will be populated by JavaScript -->
         </div>
     </header>
     
     <div class="main-container">
-        <h1 class="page-title">Employee Dashboard</h1>
+        <h1 class="page-title">Admin Dashboard</h1>
         
         <div class="dashboard-container">
             <div class="sidebar">
                 <ul class="sidebar-nav">
-                    <li><a href="#" class="active">Bookings</a></li>
-                    <li><a href="#">Court Management</a></li>
-                    <li><a href="#">Customer Management</a></li>
-                    <li><a href="#">Reports</a></li>
-                    <li><a href="#">Settings</a></li>
+                    <li><a href="#" class="active" data-section="bookings">Bookings</a></li>
+                    <li><a href="#" data-section="courts">Court Management</a></li>
+                    <li><a href="#" data-section="users">User Management</a></li>
+                    <li><a href="#" data-section="reports">Reports</a></li>
+                    <li><a href="#" data-section="settings">Settings</a></li>
                 </ul>
             </div>
             
             <div class="content-area">
-                <div class="pending-bookings">
+                <!-- Bookings Section -->
+                <div id="bookings-section" class="dashboard-section">
+                    <div class="pending-bookings">
+                        <div class="section-header">
+                            <h2 class="section-title">All Bookings</h2>
+                            <div class="search-container">
+                                <input type="text" id="bookingSearch" placeholder="Search bookings..." class="search-input">
+                            </div>
+                        </div>
+                        
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>User</th>
+                                    <th>Court</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bookingsTable">
+                                <!-- Will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Courts Section -->
+                <div id="courts-section" class="dashboard-section" style="display: none;">
                     <div class="section-header">
-                        <h2 class="section-title">Pending Bookings</h2>
+                        <h2 class="section-title">Court Management</h2>
+                        <button class="btn btn-primary" id="addCourtBtn">Add Court</button>
+                    </div>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Court Name</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="courtsTable">
+                            <!-- Will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Users Section -->
+                <div id="users-section" class="dashboard-section" style="display: none;">
+                    <div class="section-header">
+                        <h2 class="section-title">User Management</h2>
                         <div class="search-container">
-                            <form class="search-form">
-                                <input type="text" class="search-input" placeholder="Search by phone or name...">
-                                <button type="submit" class="btn btn-primary">Search</button>
-                            </form>
+                            <input type="text" id="userSearch" placeholder="Search users..." class="search-input">
                         </div>
                     </div>
                     
@@ -53,134 +234,64 @@
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Customer</th>
-                                <th>Court</th>
-                                <th>Day</th>
-                                <th>Time</th>
-                                <th>Status</th>
+                                <th>Name</th>
+                                <th>Username</th>
+                                <th>Role</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td>#1001</td>
-                                <td>John Doe (123-456-7890)</td>
-                                <td>Court 1</td>
-                                <td>Monday</td>
-                                <td>10:00 - 10:30</td>
-                                <td><span class="status-badge status-pending">Pending</span></td>
-                                <td class="action-buttons">
-                                    <button class="btn btn-success">Confirm</button>
-                                    <button class="btn btn-danger">Cancel</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>#1002</td>
-                                <td>Jane Smith (098-765-4321)</td>
-                                <td>Court 2</td>
-                                <td>Tuesday</td>
-                                <td>11:00 - 11:30</td>
-                                <td><span class="status-badge status-pending">Pending</span></td>
-                                <td class="action-buttons">
-                                    <button class="btn btn-success">Confirm</button>
-                                    <button class="btn btn-danger">Cancel</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>#1003</td>
-                                <td>John Doe (123-456-7890)</td>
-                                <td>Court 3</td>
-                                <td>Wednesday</td>
-                                <td>09:00 - 09:30</td>
-                                <td><span class="status-badge status-confirmed">Confirmed</span></td>
-                                <td class="action-buttons">
-                                    <button class="btn btn-danger">Cancel</button>
-                                </td>
-                            </tr>
+                        <tbody id="usersTable">
+                            <!-- Will be populated by JavaScript -->
                         </tbody>
                     </table>
                 </div>
                 
-                <div class="court-schedule-view">
+                <!-- Reports Section -->
+                <div id="reports-section" class="dashboard-section" style="display: none;">
                     <div class="section-header">
-                        <h2 class="section-title">Court Schedule Overview</h2>
+                        <h2 class="section-title">Reports</h2>
                     </div>
                     
-                    <div class="day-selector">
-                        <div class="day-tab active">Monday</div>
-                        <div class="day-tab">Tuesday</div>
-                        <div class="day-tab">Wednesday</div>
-                        <div class="day-tab">Thursday</div>
-                        <div class="day-tab">Friday</div>
-                        <div class="day-tab">Saturday</div>
-                        <div class="day-tab">Sunday</div>
+                    <div class="report-cards">
+                        <div class="report-card">
+                            <h3>Total Bookings</h3>
+                            <div class="report-value" id="totalBookingsValue">0</div>
+                        </div>
+                        <div class="report-card">
+                            <h3>Revenue</h3>
+                            <div class="report-value" id="totalRevenueValue">$0.00</div>
+                        </div>
+                        <div class="report-card">
+                            <h3>Active Users</h3>
+                            <div class="report-value" id="activeUsersValue">0</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Settings Section -->
+                <div id="settings-section" class="dashboard-section" style="display: none;">
+                    <div class="section-header">
+                        <h2 class="section-title">Settings</h2>
                     </div>
                     
-                    <div class="court-grid">
-                        <!-- Court 1 -->
-                        <div class="court-card">
-                            <div class="court-header">
-                                <h3>Court 1</h3>
-                            </div>
-                            <div class="time-slots">
-                                <div class="time-slot available">
-                                    <span>09:00 - 09:30</span>
-                                    <button class="btn btn-primary btn-sm">Book</button>
-                                </div>
-                                <div class="time-slot available">
-                                    <span>09:30 - 10:00</span>
-                                    <button class="btn btn-primary btn-sm">Book</button>
-                                </div>
-                                <div class="time-slot booked">
-                                    <span>10:00 - 10:30</span>
-                                    <span>John D.</span>
-                                </div>
-                                <div class="time-slot booked">
-                                    <span>10:30 - 11:00</span>
-                                    <span>John D.</span>
-                                </div>
-                                <div class="time-slot available">
-                                    <span>11:00 - 11:30</span>
-                                    <button class="btn btn-primary btn-sm">Book</button>
-                                </div>
-                            </div>
+                    <form id="settingsForm">
+                        <div class="form-group">
+                            <label for="courtPrice">Price per 30 minutes</label>
+                            <input type="number" id="courtPrice" min="0" step="0.01" value="15.00">
                         </div>
-                        
-                        <!-- Court 2 -->
-                        <div class="court-card">
-                            <div class="court-header">
-                                <h3>Court 2</h3>
-                            </div>
-                            <div class="time-slots">
-                                <div class="time-slot booked">
-                                    <span>09:00 - 09:30</span>
-                                    <span>Jane S.</span>
-                                </div>
-                                <div class="time-slot booked">
-                                    <span>09:30 - 10:00</span>
-                                    <span>Jane S.</span>
-                                </div>
-                                <div class="time-slot available">
-                                    <span>10:00 - 10:30</span>
-                                    <button class="btn btn-primary btn-sm">Book</button>
-                                </div>
-                                <div class="time-slot available">
-                                    <span>10:30 - 11:00</span>
-                                    <button class="btn btn-primary btn-sm">Book</button>
-                                </div>
-                                <div class="time-slot booked">
-                                    <span>11:00 - 11:30</span>
-                                    <span>Mike P.</span>
-                                </div>
-                            </div>
+                        <div class="form-group">
+                            <label for="bookingFee">Booking Fee</label>
+                            <input type="number" id="bookingFee" min="0" step="0.01" value="2.00">
                         </div>
-                        
-                        <!-- More courts would be added here -->
-                    </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">Save Settings</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
+    
     <script src="../js/admin.js"></script>
 </body>
 </html>
