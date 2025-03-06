@@ -243,45 +243,72 @@ function generateDaysForCourt(courtId, weekStart) {
         });
     }
     
-    // Create table structure with simpler time headers
+    // Create table structure with hour markings for every hour
     let tableHtml = `
         <table class="court-schedule-table">
             <thead>
                 <tr>
                     <th>Day</th>
-                    <th colspan="4">7AM</th>
-                    <th colspan="4">9AM</th>
-                    <th colspan="4">11AM</th>
-                    <th colspan="4">1PM</th>
-                    <th colspan="4">3PM</th>
-                    <th colspan="4">5PM</th>
-                    <th colspan="4">7PM</th>
-                    <th colspan="4">9PM</th>
-                    <th colspan="4">11PM</th>
-                    <th colspan="2">1AM</th>
+                    <th colspan="2">7AM</th>
+                    <th colspan="2">8AM</th>
+                    <th colspan="2">9AM</th>
+                    <th colspan="2">10AM</th>
+                    <th colspan="2">11AM</th>
+                    <th colspan="2">12PM</th>
+                    <th colspan="2">1PM</th>
+                    <th colspan="2">2PM</th>
+                    <th colspan="2">3PM</th>
+                    <th colspan="2">4PM</th>
+                    <th colspan="2">5PM</th>
+                    <th colspan="2">6PM</th>
+                    <th colspan="2">7PM</th>
+                    <th colspan="2">8PM</th>
+                    <th colspan="2">9PM</th>
+                    <th colspan="2">10PM</th>
+                    <th colspan="2">11PM</th>
+                    <th colspan="2">12AM</th>
+                    <th>1AM</th>
                 </tr>
                 <tr>
                     <th></th>
-                    <!-- 7-9AM -->
-                    <th>:00</th><th>:30</th><th>:00</th><th>:30</th>
-                    <!-- 9-11AM -->
-                    <th>:00</th><th>:30</th><th>:00</th><th>:30</th>
-                    <!-- 11AM-1PM -->
-                    <th>:00</th><th>:30</th><th>:00</th><th>:30</th>
-                    <!-- 1-3PM -->
-                    <th>:00</th><th>:30</th><th>:00</th><th>:30</th>
-                    <!-- 3-5PM -->
-                    <th>:00</th><th>:30</th><th>:00</th><th>:30</th>
-                    <!-- 5-7PM -->
-                    <th>:00</th><th>:30</th><th>:00</th><th>:30</th>
-                    <!-- 7-9PM -->
-                    <th>:00</th><th>:30</th><th>:00</th><th>:30</th>
-                    <!-- 9-11PM -->
-                    <th>:00</th><th>:30</th><th>:00</th><th>:30</th>
-                    <!-- 11PM-1AM -->
-                    <th>:00</th><th>:30</th><th>:00</th><th>:30</th>
+                    <!-- 7AM -->
+                    <th>:00</th><th>:30</th>
+                    <!-- 8AM -->
+                    <th>:00</th><th>:30</th>
+                    <!-- 9AM -->
+                    <th>:00</th><th>:30</th>
+                    <!-- 10AM -->
+                    <th>:00</th><th>:30</th>
+                    <!-- 11AM -->
+                    <th>:00</th><th>:30</th>
+                    <!-- 12PM -->
+                    <th>:00</th><th>:30</th>
+                    <!-- 1PM -->
+                    <th>:00</th><th>:30</th>
+                    <!-- 2PM -->
+                    <th>:00</th><th>:30</th>
+                    <!-- 3PM -->
+                    <th>:00</th><th>:30</th>
+                    <!-- 4PM -->
+                    <th>:00</th><th>:30</th>
+                    <!-- 5PM -->
+                    <th>:00</th><th>:30</th>
+                    <!-- 6PM -->
+                    <th>:00</th><th>:30</th>
+                    <!-- 7PM -->
+                    <th>:00</th><th>:30</th>
+                    <!-- 8PM -->
+                    <th>:00</th><th>:30</th>
+                    <!-- 9PM -->
+                    <th>:00</th><th>:30</th>
+                    <!-- 10PM -->
+                    <th>:00</th><th>:30</th>
+                    <!-- 11PM -->
+                    <th>:00</th><th>:30</th>
+                    <!-- 12AM -->
+                    <th>:00</th><th>:30</th>
                     <!-- 1AM -->
-                    <th>:00</th><th></th>
+                    <th>:00</th>
                 </tr>
             </thead>
             <tbody>

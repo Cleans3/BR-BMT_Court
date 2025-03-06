@@ -198,9 +198,8 @@ nav ul li a.active {
 .courts-container {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
+    gap: 1rem;
     max-width: 100%;
-    overflow-x: auto;
 }
 
 .court-schedule {
@@ -253,25 +252,26 @@ nav ul li a.active {
 }
 
 .court-schedule-table th {
-    padding: 6px 2px;
+    padding: 5px 1px;
     background-color: var(--secondary-color);
     color: white;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     text-align: center;
     border: 1px solid #ddd;
     white-space: nowrap;
-    width: 20px; /* Fixed width for time columns */
+    width: 18px; /* Narrower width for time columns to fit more */
+    overflow: hidden;
 }
 
 .court-schedule-table th:first-child {
-    min-width: 80px; /* Day column wider */
+    min-width: 70px; /* Day column wider but slightly smaller */
     width: auto;
 }
 
 .court-schedule-table td {
     border: 1px solid #ddd;
     padding: 0;
-    width: 20px; /* Fixed width for time cells */
+    width: 18px; /* Fixed width for time cells, matching headers */
 }
 
 .court-schedule-table td:first-child {
@@ -281,10 +281,10 @@ nav ul li a.active {
 .time-slot {
     display: block;
     width: 100%;
-    height: 25px;
-    padding: 2px;
+    height: 22px; /* Slightly reduced height */
+    padding: 1px;
     text-align: center;
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     cursor: pointer;
     transition: all 0.3s;
 }
@@ -590,22 +590,47 @@ input.error {
     display: block;
 }
 
-/* For large screens only - prevent unnecessary scrolling */
-@media (min-width: 1400px) {
+/* For large screens - maximize visible content */
+@media (min-width: 1600px) {
+    .main-container {
+        max-width: 98%; /* Use almost all available space */
+    }
+    
     .court-schedule-table {
         min-width: 0;
         width: 100%;
     }
     
     .time-slot {
-        height: 30px;
+        height: 28px; /* Taller slots for better visibility */
+    }
+    
+    .court-schedule-table th {
+        font-size: 0.75rem;
+        padding: 6px 1px;
+    }
+}
+
+/* For medium-large screens */
+@media (min-width: 1400px) and (max-width: 1599px) {
+    .main-container {
+        max-width: 97%;
+    }
+    
+    .court-schedule-table {
+        min-width: 0;
+        width: 100%;
+    }
+    
+    .time-slot {
+        height: 25px;
     }
 }
 
 /* For medium screens */
 @media (max-width: 1399px) and (min-width: 769px) {
     .court-schedule-table {
-        min-width: 1200px;
+        min-width: 1500px;
     }
 }
 
