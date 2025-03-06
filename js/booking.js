@@ -212,7 +212,7 @@ function renderCourts() {
                 <h2>${courtNames[courtId - 1]}</h2>
             </div>
             <div class="days-container">
-                <div class="table-responsive">
+                <div class="table-responsive" style="overflow-x: auto; max-width: 100%;">
                     ${generateDaysForCourt(courtId, weekStart)}
                 </div>
             </div>
@@ -245,7 +245,7 @@ function generateDaysForCourt(courtId, weekStart) {
     
     // Create table structure with hour markings for every hour
     let tableHtml = `
-        <table class="court-schedule-table">
+        <table class="court-schedule-table" style="width: 2000px;">
             <thead>
                 <tr>
                     <th>Day</th>
