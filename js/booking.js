@@ -211,8 +211,10 @@ function renderCourts() {
             <div class="court-header">
                 <h2>${courtNames[courtId - 1]}</h2>
             </div>
-            <div class="days-container" id="court-${courtId}-days">
-                ${generateDaysForCourt(courtId, weekStart)}
+            <div class="days-container">
+                <div class="table-responsive">
+                    ${generateDaysForCourt(courtId, weekStart)}
+                </div>
             </div>
         `;
         
@@ -241,19 +243,29 @@ function generateDaysForCourt(courtId, weekStart) {
         });
     }
     
-    // Create table structure with times as columns - use fewer column headers for better display
+    // Create table structure with time headers - create groupings for readability
     let tableHtml = `
         <table class="court-schedule-table">
             <thead>
                 <tr>
-                    <th>Day</th>
-                    <th colspan="6">7AM</th>
-                    <th colspan="6">10AM</th>
-                    <th colspan="6">1PM</th>
-                    <th colspan="6">4PM</th>
-                    <th colspan="6">7PM</th>
-                    <th colspan="6">10PM</th>
-                    <th colspan="2">1AM</th>
+                    <th rowspan="2">Day</th>
+                    <th colspan="6">Morning</th>
+                    <th colspan="6">Afternoon</th>
+                    <th colspan="8">Evening</th>
+                    <th colspan="12">Night</th>
+                    <th colspan="6">Late Night</th>
+                </tr>
+                <tr>
+                    <!-- 7AM-10AM -->
+                    <th>7:00</th><th>7:30</th><th>8:00</th><th>8:30</th><th>9:00</th><th>9:30</th>
+                    <!-- 10AM-1PM -->
+                    <th>10:00</th><th>10:30</th><th>11:00</th><th>11:30</th><th>12:00</th><th>12:30</th>
+                    <!-- 1PM-5PM -->
+                    <th>1:00</th><th>1:30</th><th>2:00</th><th>2:30</th><th>3:00</th><th>3:30</th><th>4:00</th><th>4:30</th>
+                    <!-- 5PM-11PM -->
+                    <th>5:00</th><th>5:30</th><th>6:00</th><th>6:30</th><th>7:00</th><th>7:30</th><th>8:00</th><th>8:30</th><th>9:00</th><th>9:30</th><th>10:00</th><th>10:30</th>
+                    <!-- 11PM-1AM -->
+                    <th>11:00</th><th>11:30</th><th>12:00</th><th>12:30</th><th>1:00</th><th></th>
                 </tr>
             </thead>
             <tbody>
@@ -310,8 +322,12 @@ function addTimeSlotListeners() {
     const slots = document.querySelectorAll('.time-slot');
     
     slots.forEach(slot => {
-        if (!slot.classList.contains('occupied')) {
+        if (!slot.classList.contains('occupied') && !slot.classList.contains('user-booked')) {
             slot.addEventListener('click', toggleSlotSelection);
+        } else if (slot.classList.contains('occupied')) {
+            slot.addEventListener('click', () => {
+                alert('This slot is already booked.');
+            });
         }
     });
 }

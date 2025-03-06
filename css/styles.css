@@ -1,4 +1,16 @@
-:root {
+.booking-instructions {
+    background-color: #f8f9fa;
+    border-left: 4px solid var(--primary-color);
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.5rem;
+    border-radius: 0 4px 4px 0;
+    font-size: 0.9rem;
+    color: var(--secondary-color);
+}
+
+.booking-instructions p {
+    margin: 0;
+}:root {
     --primary-color: #3498db;
     --secondary-color: #2c3e50;
     --accent-color: #00FFFF;
@@ -531,6 +543,13 @@ input.error {
     gap: 1rem;
 }
 
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    position: relative;
+}
+
 @media (max-width: 768px) {
     .form-row {
         grid-template-columns: 1fr;
@@ -538,10 +557,6 @@ input.error {
     
     .courts-container {
         grid-template-columns: 1fr;
-    }
-    
-    .time-slot {
-        flex: 0 0 calc(50% - 5px);
     }
     
     header {
@@ -556,6 +571,22 @@ input.error {
     .auth-container {
         width: 100%;
         justify-content: center;
+    }
+    
+    .court-tab {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .time-slot {
+        height: 25px;
+        padding: 3px 1px;
+        font-size: 0.65rem;
+    }
+    
+    .court-schedule-table th {
+        padding: 4px 2px;
+        font-size: 0.65rem;
     }
 }
 /* ===== Employee Dashboard Styles ===== */
