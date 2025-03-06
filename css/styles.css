@@ -125,7 +125,7 @@ nav ul li a.active {
 }
 
 .main-container {
-    max-width: 1200px;
+    max-width: 95%;
     margin: 2rem auto;
     padding: 0 1rem;
 }
@@ -159,8 +159,10 @@ nav ul li a.active {
 
 .courts-container {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 2rem;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    max-width: 100%;
+    overflow-x: auto;
 }
 
 .court-schedule {
@@ -206,15 +208,35 @@ nav ul li a.active {
     gap: 5px;
 }
 
-.time-slot {
-    flex: 0 0 calc(33.333% - 5px);
-    padding: 5px;
+.court-schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.court-schedule-table th {
+    padding: 6px 3px;
+    background-color: var(--secondary-color);
+    color: white;
+    font-size: 0.75rem;
     text-align: center;
-    font-size: 0.8rem;
-    border-radius: 3px;
+    border: 1px solid #ddd;
+}
+
+.court-schedule-table td {
+    border: 1px solid #ddd;
+    padding: 0;
+}
+
+.time-slot {
+    display: block;
+    width: 100%;
+    height: 30px;
+    padding: 5px 2px;
+    text-align: center;
+    font-size: 0.7rem;
     cursor: pointer;
     transition: all 0.3s;
-    margin-bottom: 5px;
 }
 
 .available {
@@ -353,6 +375,27 @@ nav ul li a.active {
 
 .form-note a:hover {
     text-decoration: underline;
+}
+
+.court-tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+}
+
+.court-tab {
+    padding: 0.75rem 1.5rem;
+    background-color: var(--light-bg);
+    border-radius: var(--border-radius);
+    margin: 0 0.5rem;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+.court-tab.active {
+    background-color: var(--primary-color);
+    color: white;
 }
 
 .hidden {

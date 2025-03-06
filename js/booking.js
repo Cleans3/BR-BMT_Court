@@ -12,12 +12,15 @@ const currentWeekDisplay = document.getElementById('currentWeekDisplay');
 const selectionSummary = document.getElementById('selectionSummary');
 const selectedCount = document.getElementById('selectedCount');
 const selectionDetails = document.getElementById('selectionDetails');
+const courtTabs = document.querySelectorAll('.court-tab');
 
 // App State
 let currentUser = null;
 let selectedSlots = [];
 let currentDate = new Date();
+let currentCourtPage = 1;
 const courtCount = 6;
+const courtsPerPage = 3;
 const daysInWeek = 7;
 const courtNames = [
     "Court 1", "Court 2", "Court 3", 
@@ -31,6 +34,13 @@ for (let hour = 7; hour <= 24; hour++) {
     timeSlots.push(`${hour % 24}:30`);
 }
 timeSlots.push('1:00');
+
+// Shorter list of time slots for display in the table headers
+const displayTimeSlots = [];
+for (let hour = 7; hour <= 24; hour += 3) {
+    displayTimeSlots.push(`${hour % 24}:00`);
+}
+displayTimeSlots.push('1:00');
 
 // Mock database for users and bookings
 let users = [
@@ -69,8 +79,30 @@ function setupEventListeners() {
     prevWeekBtn.addEventListener('click', () => navigateWeek(-7));
     nextWeekBtn.addEventListener('click', () => navigateWeek(7));
     
+    // Court tabs navigation
+    courtTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const page = parseInt(tab.getAttribute('data-page'));
+            currentCourtPage = page;
+            updateCourtTabs();
+            renderCourts();
+        });
+    });
+    
     // Booking
     bookBtn.addEventListener('click', handleBooking);
+}
+
+// Update court tabs active state
+function updateCourtTabs() {
+    courtTabs.forEach(tab => {
+        const page = parseInt(tab.getAttribute('data-page'));
+        if (page === currentCourtPage) {
+            tab.classList.add('active');
+        } else {
+            tab.classList.remove('active');
+        }
+    });
 }
 
 // Authentication functions
@@ -167,7 +199,11 @@ function renderCourts() {
     const weekStart = new Date(currentDate);
     weekStart.setDate(currentDate.getDate() - currentDate.getDay() + (currentDate.getDay() === 0 ? -6 : 1));
     
-    for (let courtId = 1; courtId <= courtCount; courtId++) {
+    // Calculate which courts to show based on current page
+    const startCourtId = (currentCourtPage - 1) * courtsPerPage + 1;
+    const endCourtId = Math.min(startCourtId + courtsPerPage - 1, courtCount);
+    
+    for (let courtId = startCourtId; courtId <= endCourtId; courtId++) {
         const courtElement = document.createElement('div');
         courtElement.className = 'court-schedule';
         
@@ -188,30 +224,60 @@ function renderCourts() {
 }
 
 function generateDaysForCourt(courtId, weekStart) {
-    let daysHtml = '';
-    
+    // Create array of days and dates
+    const days = [];
     for (let dayOffset = 0; dayOffset < daysInWeek; dayOffset++) {
         const dayDate = new Date(weekStart);
         dayDate.setDate(weekStart.getDate() + dayOffset);
         
-        const dayOfWeek = dayDate.toLocaleString('en-US', { weekday: 'long' });
+        const dayOfWeek = dayDate.toLocaleString('en-US', { weekday: 'short' });
         const formattedDate = dayDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         const dateString = formatDateToYMD(dayDate);
         
-        daysHtml += `
-            <div class="day-row">
-                <div class="day-label">
-                    <span>${dayOfWeek}</span>
-                    <span class="day-date">${formattedDate}</span>
-                </div>
-                <div class="time-slot-container" data-court="${courtId}" data-date="${dateString}">
-                    ${generateTimeSlotsForDay(courtId, dateString)}
-                </div>
-            </div>
+        days.push({
+            dayOfWeek,
+            formattedDate,
+            dateString
+        });
+    }
+    
+    // Create table structure with times as columns - use fewer column headers for better display
+    let tableHtml = `
+        <table class="court-schedule-table">
+            <thead>
+                <tr>
+                    <th>Day</th>
+                    <th colspan="6">7AM</th>
+                    <th colspan="6">10AM</th>
+                    <th colspan="6">1PM</th>
+                    <th colspan="6">4PM</th>
+                    <th colspan="6">7PM</th>
+                    <th colspan="6">10PM</th>
+                    <th colspan="2">1AM</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    // Add rows for each day
+    for (const day of days) {
+        tableHtml += `
+            <tr>
+                <td style="padding: 5px; min-width: 80px;">
+                    <strong>${day.dayOfWeek}</strong><br>
+                    <span class="day-date">${day.formattedDate}</span>
+                </td>
+                ${generateTimeSlotsForDay(courtId, day.dateString)}
+            </tr>
         `;
     }
     
-    return daysHtml;
+    tableHtml += `
+            </tbody>
+        </table>
+    `;
+    
+    return tableHtml;
 }
 
 function generateTimeSlotsForDay(courtId, dateString) {
@@ -231,9 +297,9 @@ function generateTimeSlotsForDay(courtId, dateString) {
         }
         
         slotsHtml += `
-            <div class="${slotClass}" data-court="${courtId}" data-date="${dateString}" data-time="${time}">
-                ${formatDisplayTime(time)}
-            </div>
+            <td>
+                <div class="${slotClass}" data-court="${courtId}" data-date="${dateString}" data-time="${time}"></div>
+            </td>
         `;
     }
     
