@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Dashboard - Badminton Court Booking</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header>
+        <div class="logo">BadmintonBooking</div>
+        <nav>
+            <ul>
+                <li><a href="#">Dashboard</a></li>
+                <li><a href="#">Courts</a></li>
+                <li><a href="#">Customers</a></li>
+                <li><a href="#">Reports</a></li>
+            </ul>
+        </nav>
+        <div class="employee-info">
+            <span class="employee-name">Staff User</span>
+            <button class="btn btn-primary">Logout</button>
+        </div>
+    </header>
+    
+    <div class="main-container">
+        <h1 class="page-title">Employee Dashboard</h1>
+        
+        <div class="dashboard-container">
+            <div class="sidebar">
+                <ul class="sidebar-nav">
+                    <li><a href="#" class="active">Bookings</a></li>
+                    <li><a href="#">Court Management</a></li>
+                    <li><a href="#">Customer Management</a></li>
+                    <li><a href="#">Reports</a></li>
+                    <li><a href="#">Settings</a></li>
+                </ul>
+            </div>
+            
+            <div class="content-area">
+                <div class="pending-bookings">
+                    <div class="section-header">
+                        <h2 class="section-title">Pending Bookings</h2>
+                        <div class="search-container">
+                            <form class="search-form">
+                                <input type="text" class="search-input" placeholder="Search by phone or name...">
+                                <button type="submit" class="btn btn-primary">Search</button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Customer</th>
+                                <th>Court</th>
+                                <th>Day</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>#1001</td>
+                                <td>John Doe (123-456-7890)</td>
+                                <td>Court 1</td>
+                                <td>Monday</td>
+                                <td>10:00 - 10:30</td>
+                                <td><span class="status-badge status-pending">Pending</span></td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-success">Confirm</button>
+                                    <button class="btn btn-danger">Cancel</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>#1002</td>
+                                <td>Jane Smith (098-765-4321)</td>
+                                <td>Court 2</td>
+                                <td>Tuesday</td>
+                                <td>11:00 - 11:30</td>
+                                <td><span class="status-badge status-pending">Pending</span></td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-success">Confirm</button>
+                                    <button class="btn btn-danger">Cancel</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>#1003</td>
+                                <td>John Doe (123-456-7890)</td>
+                                <td>Court 3</td>
+                                <td>Wednesday</td>
+                                <td>09:00 - 09:30</td>
+                                <td><span class="status-badge status-confirmed">Confirmed</span></td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-danger">Cancel</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="court-schedule-view">
+                    <div class="section-header">
+                        <h2 class="section-title">Court Schedule Overview</h2>
+                    </div>
+                    
+                    <div class="day-selector">
+                        <div class="day-tab active">Monday</div>
+                        <div class="day-tab">Tuesday</div>
+                        <div class="day-tab">Wednesday</div>
+                        <div class="day-tab">Thursday</div>
+                        <div class="day-tab">Friday</div>
+                        <div class="day-tab">Saturday</div>
+                        <div class="day-tab">Sunday</div>
+                    </div>
+                    
+                    <div class="court-grid">
+                        <!-- Court 1 -->
+                        <div class="court-card">
+                            <div class="court-header">
+                                <h3>Court 1</h3>
+                            </div>
+                            <div class="time-slots">
+                                <div class="time-slot available">
+                                    <span>09:00 - 09:30</span>
+                                    <button class="btn btn-primary btn-sm">Book</button>
+                                </div>
+                                <div class="time-slot available">
+                                    <span>09:30 - 10:00</span>
+                                    <button class="btn btn-primary btn-sm">Book</button>
+                                </div>
+                                <div class="time-slot booked">
+                                    <span>10:00 - 10:30</span>
+                                    <span>John D.</span>
+                                </div>
+                                <div class="time-slot booked">
+                                    <span>10:30 - 11:00</span>
+                                    <span>John D.</span>
+                                </div>
+                                <div class="time-slot available">
+                                    <span>11:00 - 11:30</span>
+                                    <button class="btn btn-primary btn-sm">Book</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Court 2 -->
+                        <div class="court-card">
+                            <div class="court-header">
+                                <h3>Court 2</h3>
+                            </div>
+                            <div class="time-slots">
+                                <div class="time-slot booked">
+                                    <span>09:00 - 09:30</span>
+                                    <span>Jane S.</span>
+                                </div>
+                                <div class="time-slot booked">
+                                    <span>09:30 - 10:00</span>
+                                    <span>Jane S.</span>
+                                </div>
+                                <div class="time-slot available">
+                                    <span>10:00 - 10:30</span>
+                                    <button class="btn btn-primary btn-sm">Book</button>
+                                </div>
+                                <div class="time-slot available">
+                                    <span>10:30 - 11:00</span>
+                                    <button class="btn btn-primary btn-sm">Book</button>
+                                </div>
+                                <div class="time-slot booked">
+                                    <span>11:00 - 11:30</span>
+                                    <span>Mike P.</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- More courts would be added here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="../js/admin.js"></script>
+</body>
+</html>

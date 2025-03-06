@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Badminton Court Booking</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header>
+        <div class="logo">BadmintonBooking</div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="#">Courts</a></li>
+                <li><a href="#">Pricing</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+        <div class="auth-container">
+            <button class="btn btn-primary login-btn">Login</button>
+        </div>
+    </header>
+    
+    <div class="main-container">
+        <h1 class="page-title">Book Your Badminton Court</h1>
+        
+        <div class="booking-calendar">
+            <div class="courts-container">
+                <!-- Court 1 -->
+                <div class="court-schedule">
+                    <div class="court-header">
+                        <h2>Court 1</h2>
+                    </div>
+                    <div class="time-slots">
+                        <!-- Monday -->
+                        <div class="day-row">
+                            <div class="day-label">Monday</div>
+                            <div class="time-slot-container">
+                                <div class="time-slot available" data-court="1" data-day="mon" data-time="09:00">9:00</div>
+                                <div class="time-slot available" data-court="1" data-day="mon" data-time="09:30">9:30</div>
+                                <div class="time-slot occupied" data-court="1" data-day="mon" data-time="10:00">10:00</div>
+                                <div class="time-slot occupied" data-court="1" data-day="mon" data-time="10:30">10:30</div>
+                                <div class="time-slot available" data-court="1" data-day="mon" data-time="11:00">11:00</div>
+                                <div class="time-slot available" data-court="1" data-day="mon" data-time="11:30">11:30</div>
+                            </div>
+                        </div>
+                        <!-- Tuesday -->
+                        <div class="day-row">
+                            <div class="day-label">Tuesday</div>
+                            <div class="time-slot-container">
+                                <div class="time-slot available" data-court="1" data-day="tue" data-time="09:00">9:00</div>
+                                <div class="time-slot available" data-court="1" data-day="tue" data-time="09:30">9:30</div>
+                                <div class="time-slot available" data-court="1" data-day="tue" data-time="10:00">10:00</div>
+                                <div class="time-slot available" data-court="1" data-day="tue" data-time="10:30">10:30</div>
+                                <div class="time-slot available" data-court="1" data-day="tue" data-time="11:00">11:00</div>
+                                <div class="time-slot available" data-court="1" data-day="tue" data-time="11:30">11:30</div>
+                            </div>
+                        </div>
+                        <!-- More days would go here -->
+                    </div>
+                </div>
+                
+                <!-- Court 2 -->
+                <div class="court-schedule">
+                    <div class="court-header">
+                        <h2>Court 2</h2>
+                    </div>
+                    <div class="time-slots">
+                        <!-- Monday -->
+                        <div class="day-row">
+                            <div class="day-label">Monday</div>
+                            <div class="time-slot-container">
+                                <div class="time-slot user-booked" data-court="2" data-day="mon" data-time="09:00">9:00</div>
+                                <div class="time-slot user-booked" data-court="2" data-day="mon" data-time="09:30">9:30</div>
+                                <div class="time-slot available" data-court="2" data-day="mon" data-time="10:00">10:00</div>
+                                <div class="time-slot available" data-court="2" data-day="mon" data-time="10:30">10:30</div>
+                                <div class="time-slot occupied" data-court="2" data-day="mon" data-time="11:00">11:00</div>
+                                <div class="time-slot occupied" data-court="2" data-day="mon" data-time="11:30">11:30</div>
+                            </div>
+                        </div>
+                        <!-- Tuesday -->
+                        <div class="day-row">
+                            <div class="day-label">Tuesday</div>
+                            <div class="time-slot-container">
+                                <div class="time-slot available" data-court="2" data-day="tue" data-time="09:00">9:00</div>
+                                <div class="time-slot available" data-court="2" data-day="tue" data-time="09:30">9:30</div>
+                                <div class="time-slot available" data-court="2" data-day="tue" data-time="10:00">10:00</div>
+                                <div class="time-slot available" data-court="2" data-day="tue" data-time="10:30">10:30</div>
+                                <div class="time-slot available" data-court="2" data-day="tue" data-time="11:00">11:00</div>
+                                <div class="time-slot available" data-court="2" data-day="tue" data-time="11:30">11:30</div>
+                            </div>
+                        </div>
+                        <!-- More days would go here -->
+                    </div>
+                </div>
+                
+                <!-- Additional courts would be added here -->
+            </div>
+        </div>
+        
+        <div class="booking-actions">
+            <button class="btn btn-book">Book Selected Slots</button>
+        </div>
+    </div>
+    
+    <div class="login-modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <div class="modal-header">
+                <h2>Login</h2>
+            </div>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" placeholder="Enter your phone number" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter your password" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Login</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src="js/booking.js"></script>
+</body>
+</html>
