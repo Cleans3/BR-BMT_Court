@@ -243,29 +243,45 @@ function generateDaysForCourt(courtId, weekStart) {
         });
     }
     
-    // Create table structure with time headers - create groupings for readability
+    // Create table structure with simpler time headers
     let tableHtml = `
         <table class="court-schedule-table">
             <thead>
                 <tr>
-                    <th rowspan="2">Day</th>
-                    <th colspan="6">Morning</th>
-                    <th colspan="6">Afternoon</th>
-                    <th colspan="8">Evening</th>
-                    <th colspan="12">Night</th>
-                    <th colspan="6">Late Night</th>
+                    <th>Day</th>
+                    <th colspan="4">7AM</th>
+                    <th colspan="4">9AM</th>
+                    <th colspan="4">11AM</th>
+                    <th colspan="4">1PM</th>
+                    <th colspan="4">3PM</th>
+                    <th colspan="4">5PM</th>
+                    <th colspan="4">7PM</th>
+                    <th colspan="4">9PM</th>
+                    <th colspan="4">11PM</th>
+                    <th colspan="2">1AM</th>
                 </tr>
                 <tr>
-                    <!-- 7AM-10AM -->
-                    <th>7:00</th><th>7:30</th><th>8:00</th><th>8:30</th><th>9:00</th><th>9:30</th>
-                    <!-- 10AM-1PM -->
-                    <th>10:00</th><th>10:30</th><th>11:00</th><th>11:30</th><th>12:00</th><th>12:30</th>
-                    <!-- 1PM-5PM -->
-                    <th>1:00</th><th>1:30</th><th>2:00</th><th>2:30</th><th>3:00</th><th>3:30</th><th>4:00</th><th>4:30</th>
-                    <!-- 5PM-11PM -->
-                    <th>5:00</th><th>5:30</th><th>6:00</th><th>6:30</th><th>7:00</th><th>7:30</th><th>8:00</th><th>8:30</th><th>9:00</th><th>9:30</th><th>10:00</th><th>10:30</th>
+                    <th></th>
+                    <!-- 7-9AM -->
+                    <th>:00</th><th>:30</th><th>:00</th><th>:30</th>
+                    <!-- 9-11AM -->
+                    <th>:00</th><th>:30</th><th>:00</th><th>:30</th>
+                    <!-- 11AM-1PM -->
+                    <th>:00</th><th>:30</th><th>:00</th><th>:30</th>
+                    <!-- 1-3PM -->
+                    <th>:00</th><th>:30</th><th>:00</th><th>:30</th>
+                    <!-- 3-5PM -->
+                    <th>:00</th><th>:30</th><th>:00</th><th>:30</th>
+                    <!-- 5-7PM -->
+                    <th>:00</th><th>:30</th><th>:00</th><th>:30</th>
+                    <!-- 7-9PM -->
+                    <th>:00</th><th>:30</th><th>:00</th><th>:30</th>
+                    <!-- 9-11PM -->
+                    <th>:00</th><th>:30</th><th>:00</th><th>:30</th>
                     <!-- 11PM-1AM -->
-                    <th>11:00</th><th>11:30</th><th>12:00</th><th>12:30</th><th>1:00</th><th></th>
+                    <th>:00</th><th>:30</th><th>:00</th><th>:30</th>
+                    <!-- 1AM -->
+                    <th>:00</th><th></th>
                 </tr>
             </thead>
             <tbody>

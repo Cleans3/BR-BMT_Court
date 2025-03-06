@@ -1,4 +1,30 @@
-.booking-instructions {
+.legend-item {
+    display: inline-block;
+    padding: 3px 8px;
+    margin-right: 10px;
+    border-radius: 3px;
+    font-size: 0.8rem;
+}
+
+.legend-available {
+    background-color: var(--available-color);
+    color: white;
+}
+
+.legend-occupied {
+    background-color: var(--occupied-color);
+    color: white;
+}
+
+.legend-selected {
+    background-color: var(--selected-color);
+    color: white;
+}
+
+.legend-user-booked {
+    background-color: var(--accent-color);
+    color: var(--dark-text);
+}.booking-instructions {
     background-color: #f8f9fa;
     border-left: 4px solid var(--primary-color);
     padding: 0.75rem 1rem;
@@ -227,24 +253,36 @@ nav ul li a.active {
 }
 
 .court-schedule-table th {
-    padding: 6px 3px;
+    padding: 6px 2px;
     background-color: var(--secondary-color);
     color: white;
     font-size: 0.75rem;
     text-align: center;
     border: 1px solid #ddd;
+    white-space: nowrap;
+    width: 20px; /* Fixed width for time columns */
+}
+
+.court-schedule-table th:first-child {
+    min-width: 80px; /* Day column wider */
+    width: auto;
 }
 
 .court-schedule-table td {
     border: 1px solid #ddd;
     padding: 0;
+    width: 20px; /* Fixed width for time cells */
+}
+
+.court-schedule-table td:first-child {
+    width: auto;
 }
 
 .time-slot {
     display: block;
     width: 100%;
-    height: 30px;
-    padding: 5px 2px;
+    height: 25px;
+    padding: 2px;
     text-align: center;
     font-size: 0.7rem;
     cursor: pointer;
@@ -548,8 +586,30 @@ input.error {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
     position: relative;
+    max-width: 100%;
+    display: block;
 }
 
+/* For large screens only - prevent unnecessary scrolling */
+@media (min-width: 1400px) {
+    .court-schedule-table {
+        min-width: 0;
+        width: 100%;
+    }
+    
+    .time-slot {
+        height: 30px;
+    }
+}
+
+/* For medium screens */
+@media (max-width: 1399px) and (min-width: 769px) {
+    .court-schedule-table {
+        min-width: 1200px;
+    }
+}
+
+/* For mobile screens */
 @media (max-width: 768px) {
     .form-row {
         grid-template-columns: 1fr;
