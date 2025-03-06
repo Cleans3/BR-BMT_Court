@@ -1,4 +1,20 @@
-<!DOCTYPE html>
+<!-- Notifications Section -->
+                <div id="notifications-section" class="dashboard-section" style="display: none;">
+                    <div class="section-header">
+                        <h2 class="section-title">All Notifications</h2>
+                        <button class="btn btn-primary" id="clearAllNotifications">Clear All</button>
+                    </div>
+                    
+                    <div class="notification-filters">
+                        <button class="btn btn-sm active" data-filter="all">All</button>
+                        <button class="btn btn-sm" data-filter="unread">Unread</button>
+                        <button class="btn btn-sm" data-filter="read">Read</button>
+                    </div>
+                    
+                    <div class="all-notifications-list" id="allNotificationsList">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -153,6 +169,25 @@
         <div class="auth-container" id="authContainer">
             <!-- Will be populated by JavaScript -->
         </div>
+        
+        <!-- Notification System -->
+        <div class="notification-container">
+            <div class="notification-toggle" id="notificationToggle">
+                <span class="notification-badge" id="notificationBadge">
+                    <span id="notificationCount">0</span>
+                </span>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            </div>
+            <div class="notification-dropdown" id="notificationDropdown">
+                <div class="notification-header">
+                    <h3>Notifications</h3>
+                    <button class="btn-mark-all-read" id="markAllRead">Mark all as read</button>
+                </div>
+                <ul class="notification-list" id="notificationsList">
+                    <!-- Will be populated by JavaScript -->
+                </ul>
+            </div>
+        </div>
     </header>
     
     <div class="main-container">
@@ -164,6 +199,7 @@
                     <li><a href="#" class="active" data-section="bookings">Bookings</a></li>
                     <li><a href="#" data-section="courts">Court Management</a></li>
                     <li><a href="#" data-section="users">User Management</a></li>
+                    <li><a href="#" data-section="notifications">Notifications</a></li>
                     <li><a href="#" data-section="reports">Reports</a></li>
                     <li><a href="#" data-section="settings">Settings</a></li>
                 </ul>
