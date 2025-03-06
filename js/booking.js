@@ -43,14 +43,26 @@ for (let hour = 7; hour <= 24; hour += 3) {
 displayTimeSlots.push('1:00');
 
 // Mock database for users and bookings
-let users = JSON.parse(localStorage.getItem('users')) || [
+let users = [
     { id: 1, username: 'admint', password: 'minhbeo', name: 'Admin User', isAdmin: true },
     { id: 2, username: 'user1', password: 'password1', name: 'John Doe', isAdmin: false }
 ];
 
-// Save initial users to localStorage if not already there
+// Check if users are already in localStorage
 if (!localStorage.getItem('users')) {
     localStorage.setItem('users', JSON.stringify(users));
+} else {
+    // Make sure the admin user exists
+    const storedUsers = JSON.parse(localStorage.getItem('users'));
+    const adminExists = storedUsers.some(user => user.username === 'admint' && user.isAdmin === true);
+    
+    if (!adminExists) {
+        // Add admin user if it doesn't exist
+        storedUsers.push({ id: storedUsers.length + 1, username: 'admint', password: 'minhbeo', name: 'Admin User', isAdmin: true });
+        localStorage.setItem('users', JSON.stringify(storedUsers));
+    }
+    
+    users = storedUsers;
 }
 
 let bookings = [
@@ -68,6 +80,14 @@ function initApp() {
     updateAuthDisplay();
     updateWeekDisplay();
     renderCourts();
+    
+    // Show admin notice if user is admin
+    if (isUserAdmin()) {
+        const adminNotice = document.getElementById('adminNotice');
+        if (adminNotice) {
+            adminNotice.style.display = 'block';
+        }
+    }
 }
 
 // Setup event listeners
@@ -134,11 +154,12 @@ function handleLogin(e) {
         closeLoginModal();
         renderCourts(); // Re-render to show user's bookings
         
-        // Alert user if they're an admin
+        // Show admin notice if they're an admin
         if (user.isAdmin) {
-            setTimeout(() => {
-                alert('Welcome Admin! You now have access to the Admin Panel.');
-            }, 500);
+            const adminNotice = document.getElementById('adminNotice');
+            if (adminNotice) {
+                adminNotice.style.display = 'block';
+            }
         }
     } else {
         alert('Invalid username or password');

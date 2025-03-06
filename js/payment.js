@@ -85,7 +85,9 @@ function updateAuthDisplay() {
                 <div class="user-info">
                     <span class="user-name">Admin: ${currentUser.name}</span>
                 </div>
-                <a href="admin/dashboard.html" class="btn admin-btn">Admin Panel</a>
+                <a href="admin/dashboard.html" class="admin-dashboard-btn">
+                    <i class="fas fa-cogs"></i> Admin Dashboard
+                </a>
                 <button class="btn btn-danger" id="logoutBtn">Logout</button>
             `;
         } else {

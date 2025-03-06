@@ -11,11 +11,41 @@ const loginModal = document.getElementById('loginModal');
 const closeLoginBtn = document.getElementById('closeLoginBtn');
 const loginForm = document.getElementById('loginForm');
 
-// Mock database from localStorage or create new
-let users = JSON.parse(localStorage.getItem('users')) || [
-    { id: 1, username: 'admint', password: 'minhbeo', name: 'Admin User', isAdmin: true },
-    { id: 2, username: 'user1', password: 'password1', name: 'John Doe', isAdmin: false }
-];
+// Mock database initialization
+let users = [];
+
+// Initialize users data
+function initializeUsers() {
+    // Try to load from localStorage
+    const storedUsers = JSON.parse(localStorage.getItem('users'));
+    
+    if (storedUsers && storedUsers.length > 0) {
+        users = storedUsers;
+        
+        // Make sure admin exists
+        const adminExists = users.some(user => user.username === 'admint' && user.isAdmin === true);
+        if (!adminExists) {
+            users.push({ 
+                id: users.length + 1, 
+                username: 'admint', 
+                password: 'minhbeo', 
+                name: 'Admin User', 
+                isAdmin: true 
+            });
+            localStorage.setItem('users', JSON.stringify(users));
+        }
+    } else {
+        // Initialize with default users
+        users = [
+            { id: 1, username: 'admint', password: 'minhbeo', name: 'Admin User', isAdmin: true },
+            { id: 2, username: 'user1', password: 'password1', name: 'John Doe', isAdmin: false }
+        ];
+        localStorage.setItem('users', JSON.stringify(users));
+    }
+}
+
+// Call initialization
+initializeUsers();
 
 // Save users to localStorage
 function saveUsers() {

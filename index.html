@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Badminton Court Booking</title>
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body id="booking-page">
     <header>
@@ -24,6 +25,11 @@
     
     <div class="main-container">
         <h1 class="page-title">Book Your Badminton Court</h1>
+        
+        <div class="admin-notice" id="adminNotice" style="display: none; background-color: #fff3cd; border: 1px solid #ffeeba; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
+            <h3 style="color: #856404; margin-top: 0;">Admin Tools Available</h3>
+            <p>You are logged in as an admin. Click the <strong>"Admin Dashboard"</strong> button in the top right corner to access admin features.</p>
+        </div>
         
         <div class="date-navigation">
             <button id="prevWeek" class="btn btn-nav">&lt; Previous Week</button>

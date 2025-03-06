@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Confirmation - Badminton Court Booking</title>
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body id="payment-page">
     <header>
@@ -23,56 +24,86 @@
     </header>
     
     <div class="main-container">
-        <h1 class="page-title">Booking Confirmation</h1>
-        
-        <div class="payment-card">
-            <div class="booking-summary">
-                <h2 class="summary-title">Your Booking Summary</h2>
-                
-                <table class="summary-table">
-                    <thead>
-                        <tr>
-                            <th>Court</th>
-                            <th>Date</th>
-                            <th>Time</th>
-                            <th>Price</th>
-                        </tr>
-                    </thead>
-                    <tbody id="bookingSummaryTable">
-                        <!-- Will be populated by JavaScript -->
-                    </tbody>
-                </table>
-                
-                <div class="price-summary">
-                    <div class="price-row">
-                        <span>Subtotal:</span>
-                        <span id="subtotalPrice">$0.00</span>
-                    </div>
-                    <div class="price-row">
-                        <span>Booking Fee:</span>
-                        <span id="bookingFee">$2.00</span>
-                    </div>
-                    <div class="price-row total-price">
-                        <span>Total:</span>
-                        <span id="totalPrice">$0.00</span>
+        <div id="bookingStep">
+            <h1 class="page-title">Booking Confirmation</h1>
+            
+            <div class="payment-card">
+                <div class="booking-summary">
+                    <h2 class="summary-title">Your Booking Summary</h2>
+                    
+                    <table class="summary-table">
+                        <thead>
+                            <tr>
+                                <th>Court</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Price</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookingSummaryTable">
+                            <!-- Will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                    
+                    <div class="price-summary">
+                        <div class="price-row">
+                            <span>Subtotal:</span>
+                            <span id="subtotalPrice">$0.00</span>
+                        </div>
+                        <div class="price-row">
+                            <span>Booking Fee:</span>
+                            <span id="bookingFee">$2.00</span>
+                        </div>
+                        <div class="price-row total-price">
+                            <span>Total:</span>
+                            <span id="totalPrice">$0.00</span>
+                        </div>
                     </div>
                 </div>
+                
+                <div class="contact-method">
+                    <h2 class="contact-title">Complete Your Booking</h2>
+                    
+                    <div class="contact-info">
+                        <p class="instruction">Please call the following number to confirm your booking and make payment:</p>
+                        <div class="phone-number">0383533171</div>
+                        <p class="instruction">Have your booking details ready. An employee will assist you with confirming your booking and processing payment.</p>
+                        <p class="instruction"><strong>Note:</strong> Your booking will be held for 1 hour. If not confirmed within this time, it will be automatically cancelled.</p>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-back" id="backButton">Back to Home</button>
+                    <button class="btn btn-primary" id="confirmButton">Confirm Booking</button>
+                </div>
             </div>
+        </div>
+        
+        <!-- Confirmation Success step -->
+        <div id="confirmationStep" class="hidden">
+            <h1 class="page-title">Booking Successfully Created</h1>
             
-            <div class="contact-method">
-                <h2 class="contact-title">Complete Your Booking</h2>
+            <div class="payment-card">
+                <div class="success-icon">
+                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#2ecc71" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                </div>
+                
+                <div class="confirmation-details" id="confirmationDetails">
+                    <!-- Will be populated by JavaScript -->
+                </div>
                 
                 <div class="contact-info">
-                    <p class="instruction">Please call the following number to confirm your booking and make payment:</p>
+                    <p class="instruction">Please call our staff at the following number to arrange payment:</p>
                     <div class="phone-number">0383533171</div>
-                    <p class="instruction">Have your booking details ready. An employee will assist you with confirming your booking and processing payment.</p>
-                    <p class="instruction"><strong>Note:</strong> Your booking will be held for 1 hour. If not confirmed within this time, it will be automatically cancelled.</p>
+                    <p class="instruction">Have your booking reference number ready.</p>
                 </div>
-            </div>
-            
-            <div class="action-buttons">
-                <button class="btn btn-back" id="backButton">Back to Home</button>
-                <button class="btn btn-primary" id="confirmButton">Confirm Booking</button>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="returnHomeButton">Return to Home</button>
+                </div>
             </div>
         </div>
     </div>
