@@ -520,7 +520,7 @@ function addTimeSlotListeners() {
     const slots = document.querySelectorAll('.time-slot');
     
     slots.forEach(slot => {
-        // All time slots, when clicked, will either show login modal or allow selection
+        // All time slots, when clicked, will allow selection without requiring login
         slot.addEventListener('click', handleTimeSlotClick);
     });
 }
@@ -652,7 +652,7 @@ function handleBooking() {
         if (guestBookingModal) {
             guestBookingModal.style.display = 'flex';
         } else {
-            // If guest modal doesn't exist, store selections for guest payment directly
+            // If guest modal doesn't exist, default to guest payment with a generic name
             sessionStorage.setItem('selectedSlots', JSON.stringify(selectedSlots));
             
             // Create a default guest user

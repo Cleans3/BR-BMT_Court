@@ -54,6 +54,9 @@ function initDashboard() {
     renderAllTables();
     updateReports();
     setupEventListeners();
+    fixSidebarNavigation();
+    loadSavedPriceSettings();
+    setupSettingsForm();
     
     // Show the default section (bookings)
     showSection('bookings');
@@ -230,19 +233,6 @@ function logout() {
 }
 
 function setupEventListeners() {
-    // Navigation
-    navLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const sectionId = link.getAttribute('data-section');
-            showSection(sectionId);
-            
-            // Update active link
-            navLinks.forEach(l => l.classList.remove('active'));
-            link.classList.add('active');
-        });
-    });
-    
     // Search functionality
     if (bookingSearch) {
         bookingSearch.addEventListener('input', filterBookings);
@@ -258,10 +248,20 @@ function setupEventListeners() {
     }
     
     // Notification dropdown toggle
-    document.getElementById('notificationToggle').addEventListener('click', toggleNotifications);
+    const notificationToggle = document.getElementById('notificationToggle');
+    if (notificationToggle) {
+        notificationToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const dropdown = document.getElementById('notificationDropdown');
+            dropdown.classList.toggle('show');
+        });
+    }
     
     // Mark all notifications as read
-    document.getElementById('markAllRead').addEventListener('click', markAllNotificationsAsRead);
+    const markAllReadBtn = document.getElementById('markAllRead');
+    if (markAllReadBtn) {
+        markAllReadBtn.addEventListener('click', markAllNotificationsAsRead);
+    }
     
     // Clear all notifications
     const clearAllBtn = document.getElementById('clearAllNotifications');
@@ -283,15 +283,141 @@ function setupEventListeners() {
             });
         });
     }
-}
-
-// Add Court button functionality
-document.addEventListener('DOMContentLoaded', function() {
+    
+    // Add Court button
     const addCourtBtn = document.getElementById('addCourtBtn');
     if (addCourtBtn) {
         addCourtBtn.addEventListener('click', addNewCourt);
     }
-});
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        const dropdown = document.getElementById('notificationDropdown');
+        if (dropdown && dropdown.classList.contains('show') && !e.target.closest('.notification-container')) {
+            dropdown.classList.remove('show');
+        }
+    });
+}
+
+function fixSidebarNavigation() {
+    const navLinks = document.querySelectorAll('.sidebar-nav a');
+    
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Get the section to show
+            const sectionId = this.getAttribute('data-section');
+            
+            // Hide all sections
+            const sections = document.querySelectorAll('.dashboard-section');
+            sections.forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Show the selected section
+            const selectedSection = document.getElementById(sectionId + '-section');
+            if (selectedSection) {
+                selectedSection.style.display = 'block';
+            }
+            
+            // Update active class
+            navLinks.forEach(navLink => {
+                navLink.classList.remove('active');
+            });
+            this.classList.add('active');
+        });
+    });
+}
+
+function loadSavedPriceSettings() {
+    const storedSettings = localStorage.getItem('pricingSettings');
+    if (storedSettings) {
+        const settings = JSON.parse(storedSettings);
+        
+        const courtPriceInput = document.getElementById('courtPrice');
+        const rushHourPriceInput = document.getElementById('rushHourPrice');
+        const bookingFeeInput = document.getElementById('bookingFee');
+        
+        if (courtPriceInput && settings.normalHourPrice) {
+            courtPriceInput.value = settings.normalHourPrice;
+        }
+        
+        if (rushHourPriceInput && settings.rushHourPrice) {
+            rushHourPriceInput.value = settings.rushHourPrice;
+        }
+        
+        if (bookingFeeInput && settings.bookingFee) {
+            bookingFeeInput.value = settings.bookingFee;
+        }
+    }
+}
+
+function setupSettingsForm() {
+    const settingsForm = document.getElementById('settingsForm');
+    if (settingsForm) {
+        settingsForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const courtPrice = parseFloat(document.getElementById('courtPrice').value);
+            const rushHourPrice = parseFloat(document.getElementById('rushHourPrice').value);
+            const bookingFee = parseFloat(document.getElementById('bookingFee').value);
+            
+            // Validate inputs
+            if (isNaN(courtPrice) || isNaN(rushHourPrice) || isNaN(bookingFee)) {
+                alert('Please enter valid numbers for all prices');
+                return;
+            }
+            
+            // Save settings
+            const settings = {
+                normalHourPrice: courtPrice,
+                rushHourPrice: rushHourPrice,
+                bookingFee: bookingFee
+            };
+            
+            localStorage.setItem('pricingSettings', JSON.stringify(settings));
+            
+            alert('Settings saved successfully!');
+        });
+    }
+    
+    // Rush hour settings form
+    const rushHourSettingsForm = document.getElementById('rushHourSettingsForm');
+    if (rushHourSettingsForm) {
+        rushHourSettingsForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const weekdayStart = parseInt(document.getElementById('weekdayRushStart').value);
+            const weekdayEnd = parseInt(document.getElementById('weekdayRushEnd').value);
+            const weekendStart = parseInt(document.getElementById('weekendRushStart').value);
+            const weekendEnd = parseInt(document.getElementById('weekendRushEnd').value);
+            
+            // Validate settings
+            if (weekdayStart >= weekdayEnd) {
+                alert('Weekday rush hour start time must be before end time');
+                return;
+            }
+            
+            if (weekendStart >= weekendEnd) {
+                alert('Weekend rush hour start time must be before end time');
+                return;
+            }
+            
+            // Save settings
+            const settings = {
+                weekdayStart,
+                weekdayEnd,
+                weekendStart,
+                weekendEnd
+            };
+            
+            localStorage.setItem('rushHourSettings', JSON.stringify(settings));
+            
+            alert('Rush hour settings saved successfully!');
+        });
+    }
+}
 
 function addNewCourt() {
     const courtName = prompt('Enter court name:');
@@ -859,15 +985,12 @@ function saveSettings(e) {
     
     // Save to localStorage
     const settings = {
-        courtPrice: parseFloat(courtPrice),
+        normalHourPrice: parseFloat(courtPrice),
         bookingFee: parseFloat(bookingFee),
         rushHourPrice: parseFloat(rushHourPrice)
     };
     
-    localStorage.setItem('adminSettings', JSON.stringify(settings));
-    
-    // Update UI constants
-    // Don't update PRICE_PER_SLOT and BOOKING_FEE here as they're used in calculations
+    localStorage.setItem('pricingSettings', JSON.stringify(settings));
     
     alert('Settings saved successfully!');
 }
@@ -914,115 +1037,5 @@ function getTimeAgo(date) {
     return `${diffInMonths} month${diffInMonths > 1 ? 's' : ''} ago`;
 }
 
-// Fix sidebar navigation
-function fixSidebarNavigation() {
-    const navLinks = document.querySelectorAll('.sidebar-nav a');
-    
-    navLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            // Get the section to show
-            const sectionId = this.getAttribute('data-section');
-            
-            // Hide all sections
-            const sections = document.querySelectorAll('.dashboard-section');
-            sections.forEach(section => {
-                section.style.display = 'none';
-            });
-            
-            // Show the selected section
-            const selectedSection = document.getElementById(sectionId + '-section');
-            if (selectedSection) {
-                selectedSection.style.display = 'block';
-            }
-            
-            // Update active class
-            navLinks.forEach(navLink => {
-                navLink.classList.remove('active');
-            });
-            this.classList.add('active');
-        });
-    });
-}
-
-// Load saved price settings on page load
-function loadSavedPriceSettings() {
-    const storedSettings = localStorage.getItem('pricingSettings');
-    if (storedSettings) {
-        const settings = JSON.parse(storedSettings);
-        
-        const courtPriceInput = document.getElementById('courtPrice');
-        const rushHourPriceInput = document.getElementById('rushHourPrice');
-        const bookingFeeInput = document.getElementById('bookingFee');
-        
-        if (courtPriceInput && settings.normalHourPrice) {
-            courtPriceInput.value = settings.normalHourPrice;
-        }
-        
-        if (rushHourPriceInput && settings.rushHourPrice) {
-            rushHourPriceInput.value = settings.rushHourPrice;
-        }
-        
-        if (bookingFeeInput && settings.bookingFee) {
-            bookingFeeInput.value = settings.bookingFee;
-        }
-    }
-}
-
-// Handle settings form submission
-function setupSettingsForm() {
-    const settingsForm = document.getElementById('settingsForm');
-    if (settingsForm) {
-        settingsForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const courtPrice = parseFloat(document.getElementById('courtPrice').value);
-            const rushHourPrice = parseFloat(document.getElementById('rushHourPrice').value);
-            const bookingFee = parseFloat(document.getElementById('bookingFee').value);
-            
-            // Validate inputs
-            if (isNaN(courtPrice) || isNaN(rushHourPrice) || isNaN(bookingFee)) {
-                alert('Please enter valid numbers for all prices');
-                return;
-            }
-            
-            // Save settings
-            const settings = {
-                normalHourPrice: courtPrice,
-                rushHourPrice: rushHourPrice,
-                bookingFee: bookingFee
-            };
-            
-            localStorage.setItem('pricingSettings', JSON.stringify(settings));
-            
-            alert('Settings saved successfully!');
-        });
-    }
-}
-
-// Add event listener to run after the page is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    initDashboard();
-    fixSidebarNavigation();
-    loadSavedPriceSettings();
-    setupSettingsForm();
-    
-    // Fix for notification dropdown toggle
-    const notificationToggle = document.getElementById('notificationToggle');
-    if (notificationToggle) {
-        notificationToggle.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const dropdown = document.getElementById('notificationDropdown');
-            dropdown.classList.toggle('show');
-        });
-    }
-    
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function(e) {
-        const dropdown = document.getElementById('notificationDropdown');
-        if (dropdown && dropdown.classList.contains('show') && !e.target.closest('.notification-container')) {
-            dropdown.classList.remove('show');
-        }
-    });
-});
+// Initialize the dashboard when DOM is loaded
+document.addEventListener('DOMContentLoaded', initDashboard);
