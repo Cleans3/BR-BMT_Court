@@ -1,4 +1,54 @@
-.booking-summary-table {
+.guest-badge {
+    background-color: var(--accent-color);
+    color: var(--dark-text);
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: 8px;
+}
+
+/* For tables in admin dashboard */
+.notification-item-large.guest-notification {
+    border-left: 4px solid var(--accent-color);
+    background-color: #f0ffff;
+}.guest-info-summary {
+    background-color: #f2fbf6;
+    padding: 1rem;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+    border-left: 4px solid var(--primary-color);
+}
+
+.payment-qr-code {
+    text-align: center;
+    margin-top: 2rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.payment-qr-code h3 {
+    margin-bottom: 1rem;
+    color: var(--secondary-color);
+}
+
+.qr-image {
+    width: 200px;
+    height: 200px;
+    margin: 0 auto 1rem;
+    border: 1px solid #ddd;
+    padding: 10px;
+    background-color: white;
+}
+
+/* Style for guest notifications in admin panel */
+.notification-item.guest-notification {
+    border-left: 4px solid var(--accent-color);
+}
+
+.notification-item-large.guest-notification {
+    border-left: 4px solid var(--accent-color);
+}.booking-summary-table {
     margin-top: 10px;
     margin-bottom: 10px;
 }
@@ -285,12 +335,12 @@
 .booking-instructions p {
     margin: 0;
 }:root {
-    --primary-color: #3498db;
+    --primary-color: #2ecc71; /* Green */
     --secondary-color: #2c3e50;
-    --accent-color: #00FFFF;
+    --accent-color: #00FFFF;  /* Cyan */
     --occupied-color: #e74c3c;
     --available-color: #7f8c8d;
-    --selected-color: #27ae60;
+    --selected-color: #00c9bd; /* Turquoise */
     --text-color: #333;
     --light-bg: #f5f5f5;
     --dark-text: #222;
@@ -314,6 +364,7 @@ body {
 
 header {
     background-color: var(--secondary-color);
+    background-image: linear-gradient(to right, #2c3e50, #1a8d67);
     color: white;
     padding: 1rem 2rem;
     display: flex;
@@ -405,7 +456,7 @@ nav ul li a.active {
 }
 
 .btn-primary:hover {
-    background-color: #2980b9;
+    background-color: #28b062;
 }
 
 .btn-danger {
@@ -713,11 +764,33 @@ body#booking-page .time-slot {
     cursor: pointer;
     font-weight: bold;
     transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.court-tab:before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: var(--accent-color);
+    transform: scaleX(0);
+    transition: transform 0.3s;
+}
+
+.court-tab:hover:before {
+    transform: scaleX(0.5);
 }
 
 .court-tab.active {
     background-color: var(--primary-color);
     color: white;
+}
+
+.court-tab.active:before {
+    transform: scaleX(1);
 }
 
 .hidden {

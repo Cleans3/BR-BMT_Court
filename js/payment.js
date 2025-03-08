@@ -1,304 +1,119 @@
-// Check if user is admin
-function isUserAdmin() {
-    // Always ensure that username 'admint' has admin privileges
-    if (currentUser && currentUser.username === 'admint') {
-        currentUser.isAdmin = true;
-        return true;
-    }
-    return currentUser && currentUser.isAdmin === true;
-}// DOM Elements
-const bookingSummaryTable = document.getElementById('bookingSummaryTable');
-const subtotalPrice = document.getElementById('subtotalPrice');
-const bookingFee = document.getElementById('bookingFee');
-const totalPrice = document.getElementById('totalPrice');
-const backButton = document.getElementById('backButton');
-const confirmButton = document.getElementById('confirmButton');
-const authContainer = document.getElementById('authContainer');
-
-// Constants
-const PRICE_PER_SLOT = 15.00; // $15 per 30-minute slot
-const BOOKING_FEE = 2.00;     // $2 booking fee
-
-// App State
-let currentUser = null;
-let selectedSlots = [];
-let bookings = [];
-
-// Additional DOM Elements
-const returnHomeButton = document.getElementById('returnHomeButton');
-
-// Initialize the page
-function initPaymentPage() {
-    loadUserFromStorage();
-    loadBookingsFromStorage();
-    updateAuthDisplay();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Confirmation - Badminton Court Booking</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body id="payment-page">
+    <header>
+        <div class="logo">BadmintonBooking</div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="courts.html">Courts</a></li>
+                <li><a href="pricing.html">Pricing</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </nav>
+        <div class="auth-container" id="authContainer">
+            <!-- Will be populated by JavaScript -->
+        </div>
+    </header>
     
-    // Load selected slots from session storage
-    const storedSlots = sessionStorage.getItem('selectedSlots');
-    if (storedSlots) {
-        selectedSlots = JSON.parse(storedSlots);
-        renderBookingSummary();
-    } else {
-        // No slots selected, redirect back to home
-        alert('No booking slots selected. Redirecting to home page.');
-        window.location.href = 'index.html';
-    }
-    
-    // Set up event listeners
-    backButton.addEventListener('click', navigateBackToHome);
-    confirmButton.addEventListener('click', confirmBooking);
-    returnHomeButton.addEventListener('click', navigateBackToHome);
-}
-
-// Check if user is admin
-function isUserAdmin() {
-    return currentUser && currentUser.isAdmin === true;
-}
-
-function loadUserFromStorage() {
-    const storedUser = localStorage.getItem('currentUser');
-    if (storedUser) {
-        currentUser = JSON.parse(storedUser);
-        
-        // Ensure the admin flag is properly set
-        if (currentUser.username === 'admint') {
-            currentUser.isAdmin = true;
-        }
-    } else {
-        // Not logged in, redirect to login
-        alert('Please log in to complete your booking.');
-        window.location.href = 'index.html';
-    }
-}
-
-function loadBookingsFromStorage() {
-    const storedBookings = localStorage.getItem('bookings');
-    if (storedBookings) {
-        bookings = JSON.parse(storedBookings);
-    } else {
-        // Initialize with sample bookings
-        bookings = [
-            { id: 1, userId: 2, courtId: 1, date: '2025-03-04', time: '10:00' },
-            { id: 2, userId: 2, courtId: 1, date: '2025-03-04', time: '10:30' },
-            { id: 3, userId: 1, courtId: 3, date: '2025-03-05', time: '18:00' },
-            { id: 4, userId: 1, courtId: 3, date: '2025-03-05', time: '18:30' }
-        ];
-        localStorage.setItem('bookings', JSON.stringify(bookings));
-    }
-}
-
-function updateAuthDisplay() {
-    if (currentUser) {
-        // Different display for admin vs regular user
-        if (isUserAdmin()) {
-            authContainer.innerHTML = `
-                <div class="user-info">
-                    <span class="user-name">Admin: ${currentUser.name}</span>
-                </div>
-                <a href="admin/dashboard.html" class="admin-dashboard-btn">
-                    <i class="fas fa-cogs"></i> Admin Dashboard
-                </a>
-                <button class="btn btn-danger" id="logoutBtn">Logout</button>
-            `;
-        } else {
-            authContainer.innerHTML = `
-                <div class="user-info">
-                    <span class="user-name">Welcome, ${currentUser.name}</span>
-                </div>
-                <button class="btn btn-danger" id="logoutBtn">Logout</button>
-            `;
-        }
-        document.getElementById('logoutBtn').addEventListener('click', logout);
-    } else {
-        authContainer.innerHTML = `
-            <button class="btn btn-primary login-btn" id="loginBtn">Login</button>
-        `;
-    }
-}
-
-function logout() {
-    currentUser = null;
-    localStorage.removeItem('currentUser');
-    // Redirect to home after logout
-    window.location.href = 'index.html';
-}
-
-function renderBookingSummary() {
-    let tableHtml = '';
-    let subtotal = 0;
-    
-    // Group by court and date
-    const groupedSlots = {};
-    
-    selectedSlots.forEach(slot => {
-        const key = `Court ${slot.courtId}-${slot.date}`;
-        if (!groupedSlots[key]) {
-            groupedSlots[key] = [];
-        }
-        groupedSlots[key].push(slot);
-    });
-    
-    // Generate table rows
-    for (const [key, slots] of Object.entries(groupedSlots)) {
-        const [courtName, date] = key.split('-');
-        
-        slots.forEach(slot => {
-            const displayDate = formatDisplayDate(slot.date);
-            tableHtml += `
-                <tr>
-                    <td>${courtName}</td>
-                    <td>${displayDate}</td>
-                    <td>${slot.displayTime || formatDisplayTime(slot.time)}</td>
-                    <td>$${PRICE_PER_SLOT.toFixed(2)}</td>
-                </tr>
-            `;
+    <div class="main-container">
+        <div id="bookingStep">
+            <h1 class="page-title">Booking Confirmation</h1>
             
-            subtotal += PRICE_PER_SLOT;
-        });
-    }
-    
-    bookingSummaryTable.innerHTML = tableHtml;
-    
-    // Update price summary
-    subtotalPrice.textContent = `$${subtotal.toFixed(2)}`;
-    bookingFee.textContent = `$${BOOKING_FEE.toFixed(2)}`;
-    const total = subtotal + BOOKING_FEE;
-    totalPrice.textContent = `$${total.toFixed(2)}`;
-}
-
-function navigateBackToHome() {
-    window.location.href = 'index.html';
-}
-
-function confirmBooking() {
-    if (!currentUser) {
-        alert('Please log in to confirm your booking.');
-        return;
-    }
-    
-    // Generate new booking IDs
-    let nextBookingId = bookings.length > 0 ? Math.max(...bookings.map(b => b.id)) + 1 : 1;
-    
-    const now = new Date();
-    const timestamp = now.toISOString();
-    
-    // Create booking entries
-    const newBookings = selectedSlots.map(slot => {
-        return {
-            id: nextBookingId++,
-            userId: currentUser.id,
-            userName: currentUser.name,
-            courtId: slot.courtId,
-            courtName: `Court ${slot.courtId}`,
-            date: slot.date,
-            time: slot.time,
-            status: 'pending',
-            createdAt: timestamp
-        };
-    });
-    
-    // Add to bookings
-    bookings = [...bookings, ...newBookings];
-    
-    // Save to localStorage
-    localStorage.setItem('bookings', JSON.stringify(bookings));
-    
-    // Create notification for admin
-    createAdminNotification(newBookings);
-    
-    // Clear session storage for selected slots to prevent duplicate bookings
-    sessionStorage.removeItem('selectedSlots');
-    
-    // Update UI to show confirmation message, but don't redirect
-    document.getElementById('confirmationStep').classList.remove('hidden');
-    document.getElementById('bookingStep').classList.add('hidden');
-    
-    // Update the confirmation details
-    const confirmationDetails = document.getElementById('confirmationDetails');
-    const totalBookedSlots = newBookings.length;
-    const firstSlot = newBookings[0];
-    
-    confirmationDetails.innerHTML = `
-        <p>You've successfully booked <strong>${totalBookedSlots}</strong> slots!</p>
-        <p>Your booking reference number: <strong>REF-${firstSlot.id}</strong></p>
-        <p>Please call <strong>0383533171</strong> to confirm your payment.</p>
-        <p>Your booking will be held for 1 hour pending payment confirmation.</p>
-    `;
-}
-
-function createAdminNotification(newBookings) {
-    // Get existing notifications or initialize empty array
-    const notifications = JSON.parse(localStorage.getItem('adminNotifications')) || [];
-    
-    // Group bookings by date for a cleaner notification
-    const groupedBookings = {};
-    
-    newBookings.forEach(booking => {
-        if (!groupedBookings[booking.date]) {
-            groupedBookings[booking.date] = {
-                courts: [],
-                times: []
-            };
-        }
+            <div class="payment-card">
+                <div class="booking-summary">
+                    <h2 class="summary-title">Your Booking Summary</h2>
+                    
+                    <table class="summary-table">
+                        <thead>
+                            <tr>
+                                <th>Court</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Price</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookingSummaryTable">
+                            <!-- Will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                    
+                    <div class="price-summary">
+                        <div class="price-row">
+                            <span>Subtotal:</span>
+                            <span id="subtotalPrice">$0.00</span>
+                        </div>
+                        <div class="price-row">
+                            <span>Booking Fee:</span>
+                            <span id="bookingFee">$2.00</span>
+                        </div>
+                        <div class="price-row total-price">
+                            <span>Total:</span>
+                            <span id="totalPrice">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="contact-method">
+                    <h2 class="contact-title">Complete Your Booking</h2>
+                    
+                    <div class="contact-info">
+                        <p class="instruction">Please call the following number to confirm your booking and make payment:</p>
+                        <div class="phone-number">0383533171</div>
+                        <p class="instruction">Have your booking details ready. An employee will assist you with confirming your booking and processing payment.</p>
+                        <p class="instruction"><strong>Note:</strong> Your booking will be held for 1 hour. If not confirmed within this time, it will be automatically cancelled.</p>
+                    </div>
+                    
+                    <div class="payment-qr-code">
+                        <h3>Or pay via QR code</h3>
+                        <img src="images/payment-qr.png" alt="Payment QR Code" class="qr-image">
+                        <p>Scan this QR code with your banking app to make payment directly.</p>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-back" id="backButton">Back to Home</button>
+                    <button class="btn btn-primary" id="confirmButton">Confirm Booking</button>
+                </div>
+            </div>
+        </div>
         
-        if (!groupedBookings[booking.date].courts.includes(booking.courtName || `Court ${booking.courtId}`)) {
-            groupedBookings[booking.date].courts.push(booking.courtName || `Court ${booking.courtId}`);
-        }
-        
-        groupedBookings[booking.date].times.push(formatDisplayTime(booking.time));
-    });
+        <!-- Confirmation Success step -->
+        <div id="confirmationStep" class="hidden">
+            <h1 class="page-title">Booking Successfully Created</h1>
+            
+            <div class="payment-card">
+                <div class="success-icon">
+                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#2ecc71" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                </div>
+                
+                <div class="confirmation-details" id="confirmationDetails">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+                
+                <div class="contact-info">
+                    <p class="instruction">Please call our staff at the following number to arrange payment:</p>
+                    <div class="phone-number">0383533171</div>
+                    <p class="instruction">Have your booking reference number ready.</p>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="returnHomeButton">Return to Home</button>
+                </div>
+            </div>
+        </div>
+    </div>
     
-    // Create a consolidated notification
-    const notification = {
-        id: Date.now(), // Use timestamp as ID
-        userId: currentUser.id,
-        userName: currentUser.name,
-        type: 'new_booking',
-        title: 'New Booking',
-        message: `${currentUser.name} has booked ${newBookings.length} slots`,
-        detailedMessage: createDetailedBookingMessage(groupedBookings),
-        bookingIds: newBookings.map(b => b.id),
-        createdAt: new Date().toISOString(),
-        isRead: false
-    };
-    
-    // Add to beginning of array (newest first)
-    notifications.unshift(notification);
-    
-    // Store in localStorage
-    localStorage.setItem('adminNotifications', JSON.stringify(notifications));
-}
-
-function createDetailedBookingMessage(groupedBookings) {
-    let message = '<div class="booking-summary-table">';
-    message += '<table><thead><tr><th>Date</th><th>Courts</th><th>Times</th></tr></thead><tbody>';
-    
-    for (const [date, details] of Object.entries(groupedBookings)) {
-        message += `<tr>
-            <td>${formatDisplayDate(date)}</td>
-            <td>${details.courts.join(', ')}</td>
-            <td>${details.times.join(', ')}</td>
-        </tr>`;
-    }
-    
-    message += '</tbody></table></div>';
-    return message;
-}
-
-// Helper functions
-function formatDisplayDate(dateStr) {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-}
-
-function formatDisplayTime(timeStr) {
-    // Convert 24-hour format to 12-hour format
-    const [hour, minute] = timeStr.split(':');
-    const hourNum = parseInt(hour);
-    const ampm = hourNum >= 12 ? 'PM' : 'AM';
-    const hour12 = hourNum % 12 || 12;
-    return `${hour12}:${minute} ${ampm}`;
-}
-
-// Call init when the DOM is fully loaded
-document.addEventListener('DOMContentLoaded', initPaymentPage);
+    <script src="js/payment.js"></script>
+</body>
+</html>

@@ -13,19 +13,24 @@ const selectionSummary = document.getElementById('selectionSummary');
 const selectedCount = document.getElementById('selectedCount');
 const selectionDetails = document.getElementById('selectionDetails');
 const courtTabs = document.querySelectorAll('.court-tab');
+const guestBookingModal = document.getElementById('guestBookingModal');
+const closeGuestBtn = document.getElementById('closeGuestBtn');
+const guestBookingForm = document.getElementById('guestBookingForm');
+const guestBookBtn = document.getElementById('guestBookBtn');
 
 // App State
 let currentUser = null;
 let selectedSlots = [];
 let currentDate = new Date();
 let currentCourtPage = 1;
+let currentCourtVenue = 'lizunex'; // Default venue
 const courtCount = 6;
-const courtsPerPage = 3;
+const courtsPerPage = 6; // Show all 6 courts at once
 const daysInWeek = 7;
-const courtNames = [
-    "Court 1", "Court 2", "Court 3", 
-    "Court 4", "Court 5", "Court 6"
-];
+const courtNames = {
+    lizunex: ["Court 1", "Court 2", "Court 3", "Court 4", "Court 5", "Court 6"],
+    vnbc: ["Court 7", "Court 8", "Court 9", "Court 10", "Court 11", "Court 12"]
+};
 
 // Time slots from 7am to 1am with 30-minute intervals
 const timeSlots = [];
@@ -124,11 +129,28 @@ function setupEventListeners() {
     // Court tabs navigation
     courtTabs.forEach(tab => {
         tab.addEventListener('click', () => {
-            const page = parseInt(tab.getAttribute('data-page'));
-            currentCourtPage = page;
+            const venue = tab.getAttribute('data-venue');
+            currentCourtVenue = venue; // Switch venue
             updateCourtTabs();
             renderCourts();
         });
+    });
+    
+    // Guest booking modal
+    if (guestBookingForm) {
+        guestBookingForm.addEventListener('submit', handleGuestBooking);
+    }
+    
+    if (closeGuestBtn) {
+        closeGuestBtn.addEventListener('click', () => {
+            guestBookingModal.style.display = 'none';
+        });
+    }
+    
+    window.addEventListener('click', (e) => {
+        if (e.target === guestBookingModal) {
+            guestBookingModal.style.display = 'none';
+        }
     });
     
     // Booking
@@ -138,8 +160,8 @@ function setupEventListeners() {
 // Update court tabs active state
 function updateCourtTabs() {
     courtTabs.forEach(tab => {
-        const page = parseInt(tab.getAttribute('data-page'));
-        if (page === currentCourtPage) {
+        const venue = tab.getAttribute('data-venue');
+        if (venue === currentCourtVenue) {
             tab.classList.add('active');
         } else {
             tab.classList.remove('active');
@@ -262,17 +284,17 @@ function renderCourts() {
     const weekStart = new Date(currentDate);
     weekStart.setDate(currentDate.getDate() - currentDate.getDay() + (currentDate.getDay() === 0 ? -6 : 1));
     
-    // Calculate which courts to show based on current page
-    const startCourtId = (currentCourtPage - 1) * courtsPerPage + 1;
-    const endCourtId = Math.min(startCourtId + courtsPerPage - 1, courtCount);
+    // Get the courts for the current venue
+    const venueCourtNames = courtNames[currentCourtVenue];
     
-    for (let courtId = startCourtId; courtId <= endCourtId; courtId++) {
+    for (let courtIndex = 0; courtIndex < venueCourtNames.length; courtIndex++) {
+        const courtId = currentCourtVenue === 'lizunex' ? (courtIndex + 1) : (courtIndex + 7);
         const courtElement = document.createElement('div');
         courtElement.className = 'court-schedule';
         
         courtElement.innerHTML = `
             <div class="court-header">
-                <h2>${courtNames[courtId - 1]}</h2>
+                <h2>${venueCourtNames[courtIndex]}</h2>
             </div>
             <div class="days-container">
                 <div class="table-responsive" style="overflow-x: auto; max-width: 100%;">
@@ -526,11 +548,44 @@ function handleBooking() {
         return;
     }
     
-    // Store selections in sessionStorage for the payment page
+    if (currentUser) {
+        // Logged in user - store selections in sessionStorage for the payment page
+        sessionStorage.setItem('selectedSlots', JSON.stringify(selectedSlots));
+        
+        // Redirect to payment page
+        window.location.href = 'payment.html';
+    } else {
+        // Guest user - show guest information form
+        document.getElementById('guestBookingModal').style.display = 'flex';
+    }
+}
+
+function handleGuestBooking(e) {
+    e.preventDefault();
+    
+    // Get guest information
+    const guestName = document.getElementById('guestName').value;
+    const guestPhone = document.getElementById('guestPhone').value;
+    
+    if (!guestName || !guestPhone) {
+        alert('Please enter your name and phone number');
+        return;
+    }
+    
+    // Create a guest user object
+    const guestUser = {
+        id: 'guest-' + Date.now(),
+        name: guestName,
+        phone: guestPhone,
+        isGuest: true
+    };
+    
+    // Store guest info and selected slots
+    sessionStorage.setItem('guestUser', JSON.stringify(guestUser));
     sessionStorage.setItem('selectedSlots', JSON.stringify(selectedSlots));
     
-    // Redirect to payment page
-    window.location.href = 'payment.html';
+    // Redirect to guest payment page
+    window.location.href = 'guest-payment.html';
 }
 
 // Helper functions

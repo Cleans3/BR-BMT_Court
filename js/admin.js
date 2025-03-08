@@ -34,10 +34,11 @@ function renderNotifications() {
         
         recentNotifications.forEach(notification => {
             const isUnread = !notification.isRead ? 'unread' : '';
+            const isGuest = notification.isGuest ? 'guest-notification' : '';
             const timeAgo = getTimeAgo(new Date(notification.createdAt));
             
             html += `
-                <li class="notification-item ${isUnread}" data-id="${notification.id}">
+                <li class="notification-item ${isUnread} ${isGuest}" data-id="${notification.id}">
                     <div class="notification-header">
                         <span class="notification-title">${notification.title}</span>
                         <span class="notification-time">${timeAgo}</span>
@@ -55,6 +56,19 @@ function renderNotifications() {
         });
         
         // Add a "View All" link if there are more than 5 notifications
+        if (notifications.length > 5) {
+            html += `
+                <li class="notification-item view-all">
+                    <a href="#" data-section="notifications" onclick="showAllNotifications(event)">
+                        View all ${notifications.length} notifications
+                    </a>
+                </li>
+            `;
+        }
+    }
+    
+    notificationsList.innerHTML = html;
+}notifications
         if (notifications.length > 5) {
             html += `
                 <li class="notification-item view-all">
@@ -211,7 +225,7 @@ function initDashboard() {
     // Force admin flag for 'admint' user
     if (currentUser && currentUser.username === 'admint') {
         currentUser.isAdmin = true;
-        // Re-save to storage
+        // Re-save to storage to ensure persistence
         const userToSave = { ...currentUser };
         delete userToSave.password;
         localStorage.setItem('currentUser', JSON.stringify(userToSave));
@@ -219,8 +233,8 @@ function initDashboard() {
     
     loadDataFromStorage();
     
-    // Check if user is admin
-    if (!currentUser || !currentUser.isAdmin) {
+    // Double check if user is admin - essential for security
+    if (!currentUser || !isAdmin()) {
         alert('Access denied. Admins only.');
         window.location.href = '../index.html';
         return;
@@ -231,6 +245,15 @@ function initDashboard() {
     renderAllTables();
     updateReports();
     setupEventListeners();
+}
+
+// Very strict admin check
+function isAdmin() {
+    if (currentUser && currentUser.username === 'admint') {
+        currentUser.isAdmin = true;
+        return true;
+    }
+    return currentUser && currentUser.isAdmin === true;
 }
 
 function loadUserFromStorage() {
@@ -377,15 +400,17 @@ function renderAllNotificationsList() {
         
         sortedNotifications.forEach(notification => {
             const isUnread = !notification.isRead ? 'unread' : '';
+            const isGuest = notification.isGuest ? 'guest-notification' : '';
             const timeAgo = getTimeAgo(new Date(notification.createdAt));
             const formattedDate = new Date(notification.createdAt).toLocaleString();
             
             html += `
-                <div class="notification-item-large ${isUnread}" data-id="${notification.id}">
+                <div class="notification-item-large ${isUnread} ${isGuest}" data-id="${notification.id}">
                     <div class="notification-header">
                         <div class="notification-title-container">
                             <span class="notification-title">${notification.title}</span>
                             ${!notification.isRead ? '<span class="unread-badge">Unread</span>' : ''}
+                            ${notification.isGuest ? '<span class="guest-badge">Guest</span>' : ''}
                         </div>
                         <span class="notification-time" title="${formattedDate}">${timeAgo}</span>
                     </div>

@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing - Badminton Court Booking</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        .pricing-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .pricing-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        
+        .pricing-header h1 {
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+        }
+        
+        .pricing-header p {
+            color: #666;
+            font-size: 1.1rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .pricing-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .pricing-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .pricing-card-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .pricing-card.premium .pricing-card-header {
+            background-color: var(--accent-color);
+            color: var(--dark-text);
+        }
+        
+        .pricing-card h2 {
+            margin: 0;
+            font-size: 1.8rem;
+        }
+        
+        .pricing-price {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 10px 0 0;
+        }
+        
+        .pricing-period {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .pricing-card-body {
+            padding: 30px;
+        }
+        
+        .pricing-features {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 30px;
+        }
+        
+        .pricing-features li {
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .pricing-features li:last-child {
+            border-bottom: none;
+        }
+        
+        .pricing-features li i {
+            color: var(--primary-color);
+            margin-right: 10px;
+        }
+        
+        .pricing-card.premium .pricing-features li i {
+            color: var(--accent-color);
+        }
+        
+        .pricing-btn {
+            display: block;
+            text-align: center;
+            text-decoration: none;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        .pricing-card.premium .pricing-btn {
+            background-color: var(--accent-color);
+            color: var(--dark-text);
+        }
+        
+        .pricing-btn:hover {
+            background-color: #28b062;
+        }
+        
+        .pricing-card.premium .pricing-btn:hover {
+            background-color: #00e0e0;
+        }
+        
+        .pricing-notes {
+            background-color: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin-top: 40px;
+        }
+        
+        .pricing-notes h3 {
+            color: var(--secondary-color);
+            margin-top: 0;
+        }
+        
+        @media (max-width: 768px) {
+            .pricing-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">BadmintonBooking</div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="pricing.html" class="active">Pricing</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </nav>
+        <div class="auth-container" id="authContainer">
+            <button class="btn btn-primary login-btn" id="loginBtn">Login</button>
+        </div>
+    </header>
+    
+    <div class="pricing-container">
+        <div class="pricing-header">
+            <h1>Badminton Court Pricing</h1>
+            <p>Choose the package that fits your needs. Whether you're a casual player or a competitive athlete, we have options for everyone.</p>
+        </div>
+        
+        <div class="pricing-cards">
+            <!-- Standard Court Card -->
+            <div class="pricing-card">
+                <div class="pricing-card-header">
+                    <h2>Standard Rate</h2>
+                    <div class="pricing-price">$15</div>
+                    <div class="pricing-period">per 30 minutes</div>
+                </div>
+                <div class="pricing-card-body">
+                    <ul class="pricing-features">
+                        <li><i class="fas fa-check"></i> Access to all Lizunex courts</li>
+                        <li><i class="fas fa-check"></i> Standard shuttlecocks available</li>
+                        <li><i class="fas fa-check"></i> Basic equipment rental</li>
+                        <li><i class="fas fa-check"></i> Water dispenser access</li>
+                        <li><i class="fas fa-times"></i> No trainer service</li>
+                    </ul>
+                    <a href="index.html" class="pricing-btn">Book Now</a>
+                </div>
+            </div>
+            
+            <!-- Premium Court Card -->
+            <div class="pricing-card premium">
+                <div class="pricing-card-header">
+                    <h2>Premium Rate</h2>
+                    <div class="pricing-price">$20</div>
+                    <div class="pricing-period">per 30 minutes</div>
+                </div>
+                <div class="pricing-card-body">
+                    <ul class="pricing-features">
+                        <li><i class="fas fa-check"></i> Access to all VNBC courts</li>
+                        <li><i class="fas fa-check"></i> Premium shuttlecocks included</li>
+                        <li><i class="fas fa-check"></i> Full equipment rental</li>
+                        <li><i class="fas fa-check"></i> Refreshment service</li>
+                        <li><i class="fas fa-check"></i> Trainer available (additional fee)</li>
+                    </ul>
+                    <a href="index.html" class="pricing-btn">Book Now</a>
+                </div>
+            </div>
+            
+            <!-- Membership Card -->
+            <div class="pricing-card">
+                <div class="pricing-card-header">
+                    <h2>Membership</h2>
+                    <div class="pricing-price">$120</div>
+                    <div class="pricing-period">per month</div>
+                </div>
+                <div class="pricing-card-body">
+                    <ul class="pricing-features">
+                        <li><i class="fas fa-check"></i> 20 hours of play time</li>
+                        <li><i class="fas fa-check"></i> Access to all courts</li>
+                        <li><i class="fas fa-check"></i> Priority booking</li>
+                        <li><i class="fas fa-check"></i> Free equipment rental</li>
+                        <li><i class="fas fa-check"></i> 10% discount on additional hours</li>
+                    </ul>
+                    <a href="contact.html" class="pricing-btn">Contact Us</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="pricing-notes">
+            <h3>Additional Information</h3>
+            <ul>
+                <li>All bookings require confirmation via phone or payment within 1 hour.</li>
+                <li>24-hour cancellation policy applies to all bookings.</li>
+                <li>Group booking discounts available for 4 or more courts.</li>
+                <li>Weekend rates may include a 10% surcharge during peak hours (6 PM - 9 PM).</li>
+                <li>Membership rates are subject to a minimum 3-month commitment.</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Login button functionality
+            const loginBtn = document.getElementById('loginBtn');
+            const authContainer = document.getElementById('authContainer');
+            
+            // Check if user is logged in
+            const storedUser = localStorage.getItem('currentUser');
+            if (storedUser) {
+                const user = JSON.parse(storedUser);
+                const isAdmin = user.username === 'admint' || user.isAdmin === true;
+                
+                if (isAdmin) {
+                    authContainer.innerHTML = `
+                        <div class="user-info">
+                            <span class="user-name">Admin: ${user.name}</span>
+                        </div>
+                        <a href="admin/dashboard.html" class="admin-dashboard-btn">
+                            <i class="fas fa-cogs"></i> Admin Dashboard
+                        </a>
+                        <button class="btn btn-danger" id="logoutBtn">Logout</button>
+                    `;
+                } else {
+                    authContainer.innerHTML = `
+                        <div class="user-info">
+                            <span class="user-name">Welcome, ${user.name}</span>
+                        </div>
+                        <button class="btn btn-danger" id="logoutBtn">Logout</button>
+                    `;
+                }
+                
+                document.getElementById('logoutBtn').addEventListener('click', function() {
+                    localStorage.removeItem('currentUser');
+                    window.location.reload();
+                });
+            } else {
+                loginBtn.addEventListener('click', function() {
+                    window.location.href = 'index.html';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

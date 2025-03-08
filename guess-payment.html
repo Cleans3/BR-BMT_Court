@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Confirmation - Badminton Court Booking</title>
+    <title>Guest Payment - Badminton Court Booking</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
@@ -13,23 +13,27 @@
         <nav>
             <ul>
                 <li><a href="index.html">Home</a></li>
-                <li><a href="courts.html">Courts</a></li>
                 <li><a href="pricing.html">Pricing</a></li>
                 <li><a href="contact.html">Contact</a></li>
             </ul>
         </nav>
         <div class="auth-container" id="authContainer">
-            <!-- Will be populated by JavaScript -->
+            <button class="btn btn-primary login-btn" id="loginBtn">Login</button>
         </div>
     </header>
     
     <div class="main-container">
         <div id="bookingStep">
-            <h1 class="page-title">Booking Confirmation</h1>
+            <h1 class="page-title">Guest Booking Confirmation</h1>
             
             <div class="payment-card">
                 <div class="booking-summary">
                     <h2 class="summary-title">Your Booking Summary</h2>
+                    
+                    <div class="guest-info-summary">
+                        <p><strong>Name:</strong> <span id="guestNameDisplay"></span></p>
+                        <p><strong>Phone:</strong> <span id="guestPhoneDisplay"></span></p>
+                    </div>
                     
                     <table class="summary-table">
                         <thead>
@@ -114,6 +118,6 @@
         </div>
     </div>
     
-    <script src="js/payment.js"></script>
+    <script src="js/guest-payment.js"></script>
 </body>
 </html>
