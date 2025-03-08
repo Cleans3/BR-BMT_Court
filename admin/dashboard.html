@@ -1,26 +1,11 @@
-<!-- Notifications Section -->
-                <div id="notifications-section" class="dashboard-section" style="display: none;">
-                    <div class="section-header">
-                        <h2 class="section-title">All Notifications</h2>
-                        <button class="btn btn-primary" id="clearAllNotifications">Clear All</button>
-                    </div>
-                    
-                    <div class="notification-filters">
-                        <button class="btn btn-sm active" data-filter="all">All</button>
-                        <button class="btn btn-sm" data-filter="unread">Unread</button>
-                        <button class="btn btn-sm" data-filter="read">Read</button>
-                    </div>
-                    
-                    <div class="all-notifications-list" id="allNotificationsList">
-                        <!-- Will be populated by JavaScript -->
-                    </div>
-                </div><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Badminton Court Booking</title>
     <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         /* Admin-specific styles */
         .dashboard-container {
@@ -153,6 +138,245 @@
             background-color: var(--primary-color);
             color: white;
         }
+        
+        /* Notification styles */
+        .notification-badge {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .notification-badge span {
+            position: absolute;
+            top: -5px;
+            right: -8px;
+            background-color: var(--accent-color);
+            color: var(--dark-text);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .notification-container {
+            position: relative;
+            margin-left: 1rem;
+        }
+        
+        .notification-toggle {
+            cursor: pointer;
+            color: white;
+            position: relative;
+            padding: 0.5rem;
+        }
+        
+        .notification-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            width: 350px;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 100;
+        }
+        
+        .notification-dropdown.show {
+            display: block;
+        }
+        
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .notification-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: var(--secondary-color);
+        }
+        
+        .btn-mark-all-read {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .notification-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .notification-item {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #eee;
+            position: relative;
+        }
+        
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+        
+        .notification-item.unread {
+            background-color: #f0f9ff;
+            border-left: 3px solid var(--accent-color);
+        }
+        
+        .notification-title {
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+            display: block;
+        }
+        
+        .notification-time {
+            font-size: 0.8rem;
+            color: #777;
+        }
+        
+        .notification-content {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .notification-actions {
+            margin-top: 0.5rem;
+            text-align: right;
+        }
+        
+        .btn-mark-read {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        
+        .notification-item.empty {
+            padding: 1rem;
+            text-align: center;
+            color: #777;
+        }
+        
+        .notification-item.view-all {
+            text-align: center;
+            padding: 0.5rem;
+            background-color: var(--light-bg);
+        }
+        
+        .notification-item.view-all a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        /* All notifications page styles */
+        .notification-filters {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .notification-filters button {
+            background-color: var(--light-bg);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .notification-filters button.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .notification-item-large {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .notification-item-large.unread {
+            border-left: 4px solid var(--accent-color);
+        }
+        
+        .notification-title-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .unread-badge, .guest-badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+        }
+        
+        .unread-badge {
+            background-color: var(--accent-color);
+            color: var(--dark-text);
+        }
+        
+        .guest-badge {
+            background-color: var(--rush-hour-color);
+            color: var(--dark-text);
+        }
+        
+        .notification-details {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background-color: var(--light-bg);
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #777;
+        }
+        
+        .notification-item-large .notification-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+            margin-top: 1rem;
+        }
+        
+        .notification-item-large.guest-notification {
+            border-left: 4px solid var(--rush-hour-color);
+            background-color: #fff9f0;
+        }
+        
+        .booking-summary-table table {
+            width: 100%;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .highlighted-row {
+            animation: highlight-row 3s;
+        }
+        
+        @keyframes highlight-row {
+            0% { background-color: rgba(0, 210, 211, 0.3); }
+            100% { background-color: transparent; }
+        }
     </style>
 </head>
 <body id="admin-page">
@@ -282,6 +506,24 @@
                     </table>
                 </div>
                 
+                <!-- Notifications Section -->
+                <div id="notifications-section" class="dashboard-section" style="display: none;">
+                    <div class="section-header">
+                        <h2 class="section-title">All Notifications</h2>
+                        <button class="btn btn-primary" id="clearAllNotifications">Clear All</button>
+                    </div>
+                    
+                    <div class="notification-filters">
+                        <button class="btn btn-sm active" data-filter="all">All</button>
+                        <button class="btn btn-sm" data-filter="unread">Unread</button>
+                        <button class="btn btn-sm" data-filter="read">Read</button>
+                    </div>
+                    
+                    <div class="all-notifications-list" id="allNotificationsList">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+                
                 <!-- Reports Section -->
                 <div id="reports-section" class="dashboard-section" style="display: none;">
                     <div class="section-header">
@@ -305,145 +547,92 @@
                 </div>
                 
                 <!-- Settings Section -->
-<div id="settings-section" class="dashboard-section" style="display: none;">
-    <div class="section-header">
-        <h2 class="section-title">Settings</h2>
+                <div id="settings-section" class="dashboard-section" style="display: none;">
+                    <div class="section-header">
+                        <h2 class="section-title">Settings</h2>
+                    </div>
+                    
+                    <form id="settingsForm">
+                        <div class="form-group">
+                            <label for="courtPrice">Normal Hour Price per 30 minutes</label>
+                            <input type="number" id="courtPrice" min="0" step="0.01" value="15.00">
+                        </div>
+                        <div class="form-group">
+                            <label for="rushHourPrice">Rush Hour Price per 30 minutes</label>
+                            <input type="number" id="rushHourPrice" min="0" step="0.01" value="20.00">
+                        </div>
+                        <div class="form-group">
+                            <label for="bookingFee">Booking Fee</label>
+                            <input type="number" id="bookingFee" min="0" step="0.01" value="2.00">
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">Save Settings</button>
+                        </div>
+                    </form>
+                    
+                    <div class="section-header" style="margin-top: 30px;">
+                        <h2 class="section-title">Rush Hour Settings</h2>
+                    </div>
+                    
+                    <form id="rushHourSettingsForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="weekdayRushStart">Weekday Rush Hour Start</label>
+                                <select id="weekdayRushStart">
+                                    <option value="12">12 PM</option>
+                                    <option value="13">1 PM</option>
+                                    <option value="14">2 PM</option>
+                                    <option value="15">3 PM</option>
+                                    <option value="16">4 PM</option>
+                                    <option value="17" selected>5 PM</option>
+                                    <option value="18">6 PM</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="weekdayRushEnd">Weekday Rush Hour End</label>
+                                <select id="weekdayRushEnd">
+                                    <option value="20">8 PM</option>
+                                    <option value="21">9 PM</option>
+                                    <option value="22">10 PM</option>
+                                    <option value="23" selected>11 PM</option>
+                                    <option value="24">12 AM</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="weekendRushStart">Weekend Rush Hour Start</label>
+                                <select id="weekendRushStart">
+                                    <option value="7">7 AM</option>
+                                    <option value="8">8 AM</option>
+                                    <option value="9" selected>9 AM</option>
+                                    <option value="10">10 AM</option>
+                                    <option value="11">11 AM</option>
+                                    <option value="12">12 PM</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="weekendRushEnd">Weekend Rush Hour End</label>
+                                <select id="weekendRushEnd">
+                                    <option value="20">8 PM</option>
+                                    <option value="21">9 PM</option>
+                                    <option value="22">10 PM</option>
+                                    <option value="23" selected>11 PM</option>
+                                    <option value="24">12 AM</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">Save Rush Hour Settings</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
     
-    <form id="settingsForm">
-        <div class="form-group">
-            <label for="courtPrice">Normal Hour Price per 30 minutes</label>
-            <input type="number" id="courtPrice" min="0" step="0.01" value="15.00">
-        </div>
-        <div class="form-group">
-            <label for="rushHourPrice">Rush Hour Price per 30 minutes</label>
-            <input type="number" id="rushHourPrice" min="0" step="0.01" value="20.00">
-        </div>
-        <div class="form-group">
-            <label for="bookingFee">Booking Fee</label>
-            <input type="number" id="bookingFee" min="0" step="0.01" value="2.00">
-        </div>
-        <div class="form-group">
-            <button type="submit" class="btn btn-primary">Save Settings</button>
-        </div>
-    </form>
-    
-    <div class="section-header" style="margin-top: 30px;">
-        <h2 class="section-title">Rush Hour Settings</h2>
-    </div>
-    
-    <form id="rushHourSettingsForm">
-        <div class="form-row">
-            <div class="form-group">
-                <label for="weekdayRushStart">Weekday Rush Hour Start</label>
-                <select id="weekdayRushStart">
-                    <option value="12">12 PM</option>
-                    <option value="13">1 PM</option>
-                    <option value="14">2 PM</option>
-                    <option value="15">3 PM</option>
-                    <option value="16">4 PM</option>
-                    <option value="17" selected>5 PM</option>
-                    <option value="18">6 PM</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="weekdayRushEnd">Weekday Rush Hour End</label>
-                <select id="weekdayRushEnd">
-                    <option value="20">8 PM</option>
-                    <option value="21">9 PM</option>
-                    <option value="22">10 PM</option>
-                    <option value="23" selected>11 PM</option>
-                    <option value="24">12 AM</option>
-                </select>
-            </div>
-        </div>
-        
-        <div class="form-row">
-            <div class="form-group">
-                <label for="weekendRushStart">Weekend Rush Hour Start</label>
-                <select id="weekendRushStart">
-                    <option value="7">7 AM</option>
-                    <option value="8">8 AM</option>
-                    <option value="9" selected>9 AM</option>
-                    <option value="10">10 AM</option>
-                    <option value="11">11 AM</option>
-                    <option value="12">12 PM</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="weekendRushEnd">Weekend Rush Hour End</label>
-                <select id="weekendRushEnd">
-                    <option value="20">8 PM</option>
-                    <option value="21">9 PM</option>
-                    <option value="22">10 PM</option>
-                    <option value="23" selected>11 PM</option>
-                    <option value="24">12 AM</option>
-                </select>
-            </div>
-        </div>
-        
-        <div class="form-group">
-            <button type="submit" class="btn btn-primary">Save Rush Hour Settings</button>
-        </div>
-    </form>
-</div>
-
-<script>
-// Add this script to handle the rush hour settings form
-document.addEventListener('DOMContentLoaded', function() {
-    // Load saved rush hour settings
-    const rushHourSettings = JSON.parse(localStorage.getItem('rushHourSettings')) || {
-        weekdayStart: 17, // 5 PM
-        weekdayEnd: 23,   // 11 PM
-        weekendStart: 9,  // 9 AM
-        weekendEnd: 23    // 11 PM
-    };
-    
-    // Set form values from saved settings
-    const weekdayRushStart = document.getElementById('weekdayRushStart');
-    const weekdayRushEnd = document.getElementById('weekdayRushEnd');
-    const weekendRushStart = document.getElementById('weekendRushStart');
-    const weekendRushEnd = document.getElementById('weekendRushEnd');
-    
-    if (weekdayRushStart) weekdayRushStart.value = rushHourSettings.weekdayStart;
-    if (weekdayRushEnd) weekdayRushEnd.value = rushHourSettings.weekdayEnd;
-    if (weekendRushStart) weekendRushStart.value = rushHourSettings.weekendStart;
-    if (weekendRushEnd) weekendRushEnd.value = rushHourSettings.weekendEnd;
-    
-    // Handle rush hour settings form submission
-    const rushHourSettingsForm = document.getElementById('rushHourSettingsForm');
-    if (rushHourSettingsForm) {
-        rushHourSettingsForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Get form values
-            const weekdayStart = parseInt(weekdayRushStart.value);
-            const weekdayEnd = parseInt(weekdayRushEnd.value);
-            const weekendStart = parseInt(weekendRushStart.value);
-            const weekendEnd = parseInt(weekendRushEnd.value);
-            
-            // Validate settings
-            if (weekdayStart >= weekdayEnd) {
-                alert('Weekday rush hour start time must be before end time');
-                return;
-            }
-            
-            if (weekendStart >= weekendEnd) {
-                alert('Weekend rush hour start time must be before end time');
-                return;
-            }
-            
-            // Save settings
-            const settings = {
-                weekdayStart,
-                weekdayEnd,
-                weekendStart,
-                weekendEnd
-            };
-            
-            localStorage.setItem('rushHourSettings', JSON.stringify(settings));
-            
-            alert('Rush hour settings saved successfully!');
-        });
-    }
-});
+    <script src="../js/admin.js"></script>
+</body>
+</html>
