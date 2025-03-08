@@ -19,7 +19,6 @@ const guestBookingForm = document.getElementById('guestBookingForm');
 const guestBookBtn = document.getElementById('guestBookBtn');
 
 // App State
-let bookBtn = document.getElementById('bookButton');
 let currentUser = null;
 let selectedSlots = [];
 let currentDate = new Date();
@@ -32,7 +31,38 @@ const courtNames = {
     lizunex: ["Court 1", "Court 2", "Court 3", "Court 4", "Court 5", "Court 6"],
     vnbc: ["Court 1", "Court 2", "Court 3", "Court 4", "Court 5", "Court 6"] // Fixed to start at 1 instead of 7
 };
+// Add this to the top of your booking.js file to make sure you have the right reference
+let bookBtn = document.getElementById('bookButton');
 
+// Replace your handleBooking function with this
+function handleBooking() {
+    // Make sure we have selected slots and the button is active
+    if (!selectedSlots.length || !bookBtn || !bookBtn.classList.contains('active')) {
+        return;
+    }
+    
+    // Simply store the selections - no login required
+    sessionStorage.setItem('selectedSlots', JSON.stringify(selectedSlots));
+    
+    if (currentUser) {
+        // User is logged in - go directly to payment page
+        window.location.href = 'payment.html';
+    } else {
+        // Guest user - show guest booking form
+        if (guestBookingModal) {
+            guestBookingModal.style.display = 'flex';
+        } else {
+            // Fallback - create a default guest user
+            const guestUser = {
+                id: 'guest-' + Date.now(),
+                name: 'Guest User',
+                isGuest: true
+            };
+            sessionStorage.setItem('guestUser', JSON.stringify(guestUser));
+            window.location.href = 'guest-payment.html';
+        }
+    }
+}
 // Time slots from 7am to 1am with 30-minute intervals
 const timeSlots = [];
 for (let hour = 7; hour <= 24; hour++) {
@@ -638,23 +668,22 @@ function getCourtDisplayName(courtId) {
 }
 
 function handleBooking() {
-    // Make sure we have selected slots and the button is active
     if (!selectedSlots.length || !bookBtn || !bookBtn.classList.contains('active')) {
         return;
     }
     
-    // Simply store the selections - no login required
+    // Store the selections in sessionStorage regardless of login status
     sessionStorage.setItem('selectedSlots', JSON.stringify(selectedSlots));
     
     if (currentUser) {
-        // User is logged in - go directly to payment page
+        // Logged in user - redirect to regular payment page
         window.location.href = 'payment.html';
     } else {
-        // Guest user - show guest booking form
+        // Guest user - show guest information form
         if (guestBookingModal) {
             guestBookingModal.style.display = 'flex';
         } else {
-            // Fallback - create a default guest user
+            // If guest modal doesn't exist for some reason, create default guest
             const guestUser = {
                 id: 'guest-' + Date.now(),
                 name: 'Guest User',
