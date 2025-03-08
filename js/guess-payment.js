@@ -9,9 +9,13 @@ const returnHomeButton = document.getElementById('returnHomeButton');
 const authContainer = document.getElementById('authContainer');
 const guestNameDisplay = document.getElementById('guestNameDisplay');
 const guestPhoneDisplay = document.getElementById('guestPhoneDisplay');
+const bookingStep = document.getElementById('bookingStep');
+const confirmationStep = document.getElementById('confirmationStep');
+const confirmationDetails = document.getElementById('confirmationDetails');
 
 // Constants
-const PRICE_PER_SLOT = 15.00; // $15 per 30-minute slot
+const NORMAL_PRICE_PER_SLOT = 15.00; // $15 per 30-minute slot for normal hours
+const RUSH_PRICE_PER_SLOT = 20.00; // $20 per 30-minute slot for rush hours
 const BOOKING_FEE = 2.00;     // $2 booking fee
 
 // App State
@@ -26,17 +30,31 @@ function initPaymentPage() {
     loadSelectedSlots();
     
     // Set up event listeners
-    backButton.addEventListener('click', navigateBackToHome);
-    confirmButton.addEventListener('click', confirmBooking);
-    returnHomeButton.addEventListener('click', navigateBackToHome);
+    setupEventListeners();
     
     // Load the "Login" button
-    authContainer.innerHTML = `
-        <button class="btn btn-primary login-btn" id="loginBtn">Login</button>
-    `;
-    document.getElementById('loginBtn').addEventListener('click', () => {
-        window.location.href = 'index.html';
-    });
+    if (authContainer) {
+        authContainer.innerHTML = `
+            <button class="btn btn-primary login-btn" id="loginBtn">Login</button>
+        `;
+        document.getElementById('loginBtn').addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+    }
+}
+
+function setupEventListeners() {
+    if (backButton) {
+        backButton.addEventListener('click', navigateBackToHome);
+    }
+    
+    if (confirmButton) {
+        confirmButton.addEventListener('click', confirmBooking);
+    }
+    
+    if (returnHomeButton) {
+        returnHomeButton.addEventListener('click', navigateBackToHome);
+    }
 }
 
 function loadGuestUserFromStorage() {
@@ -79,6 +97,8 @@ function loadSelectedSlots() {
 }
 
 function renderBookingSummary() {
+    if (!bookingSummaryTable || !subtotalPrice || !bookingFee || !totalPrice) return;
+    
     let tableHtml = '';
     let subtotal = 0;
     
@@ -99,16 +119,18 @@ function renderBookingSummary() {
         
         slots.forEach(slot => {
             const displayDate = formatDisplayDate(slot.date);
+            const slotPrice = slot.isRushHour ? RUSH_PRICE_PER_SLOT : NORMAL_PRICE_PER_SLOT;
+            
             tableHtml += `
                 <tr>
                     <td>${courtName}</td>
                     <td>${displayDate}</td>
-                    <td>${slot.displayTime || formatDisplayTime(slot.time)}</td>
-                    <td>$${PRICE_PER_SLOT.toFixed(2)}</td>
+                    <td>${slot.displayTime || formatDisplayTime(slot.time)} ${slot.isRushHour ? '<span style="color:#fdcb6e">★</span>' : ''}</td>
+                    <td>$${slotPrice.toFixed(2)}</td>
                 </tr>
             `;
             
-            subtotal += PRICE_PER_SLOT;
+            subtotal += slotPrice;
         });
     }
     
@@ -149,6 +171,8 @@ function confirmBooking() {
             date: slot.date,
             time: slot.time,
             status: 'pending',
+            isRushHour: slot.isRushHour,
+            price: slot.isRushHour ? RUSH_PRICE_PER_SLOT : NORMAL_PRICE_PER_SLOT,
             createdAt: timestamp,
             isGuest: true
         };
@@ -167,19 +191,29 @@ function confirmBooking() {
     sessionStorage.removeItem('selectedSlots');
     
     // Update UI to show confirmation message, but don't redirect
-    document.getElementById('confirmationStep').classList.remove('hidden');
-    document.getElementById('bookingStep').classList.add('hidden');
+    if (confirmationStep && bookingStep) {
+        confirmationStep.classList.remove('hidden');
+        bookingStep.classList.add('hidden');
+    }
     
     // Update the confirmation details
-    const confirmationDetails = document.getElementById('confirmationDetails');
+    updateConfirmationDetails(newBookings);
+}
+
+function updateConfirmationDetails(newBookings) {
+    if (!confirmationDetails) return;
+    
     const totalBookedSlots = newBookings.length;
-    const firstSlot = newBookings[0];
+    const subtotal = newBookings.reduce((sum, booking) => sum + booking.price, 0);
+    const total = subtotal + BOOKING_FEE;
+    const firstBooking = newBookings[0];
     
     confirmationDetails.innerHTML = `
         <p><strong>Guest Name:</strong> ${guestUser.name}</p>
         <p><strong>Phone:</strong> ${guestUser.phone}</p>
-        <p>You've successfully booked <strong>${totalBookedSlots}</strong> slots!</p>
-        <p>Your booking reference number: <strong>REF-G${firstSlot.id}</strong></p>
+        <p><strong>Booking Reference:</strong> REF-G${firstBooking.id}</p>
+        <p><strong>Slots Booked:</strong> ${totalBookedSlots}</p>
+        <p><strong>Total Amount:</strong> $${total.toFixed(2)}</p>
         <p>Please call <strong>0383533171</strong> to confirm your payment.</p>
         <p>Your booking will be held for 1 hour pending payment confirmation.</p>
     `;
@@ -204,7 +238,9 @@ function createAdminNotification(newBookings) {
             groupedBookings[booking.date].courts.push(booking.courtName || `Court ${booking.courtId}`);
         }
         
-        groupedBookings[booking.date].times.push(formatDisplayTime(booking.time));
+        groupedBookings[booking.date].times.push(
+            `${formatDisplayTime(booking.time)}${booking.isRushHour ? ' (Rush)' : ''}`
+        );
     });
     
     // Create a consolidated notification with guest styling

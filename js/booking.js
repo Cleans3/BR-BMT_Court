@@ -19,57 +19,6 @@ const guestBookingForm = document.getElementById('guestBookingForm');
 const guestBookBtn = document.getElementById('guestBookBtn');
 
 // App State
-let currentUser = null;
-let selectedSlots = [];
-let currentDate = new Date();
-let currentCourtPage = 1;
-let currentCourtVenue = 'lizunex'; // Default venue
-const courtCount = 6;
-const courtsPerPage = 6; // Show all 6 courts at once
-const daysInWeek = 7;
-const courtNames = {
-    lizunex: ["Court 1", "Court 2", "Court 3", "Court 4", "Court 5", "Court 6"],
-    vnbc: ["Court 7", "Court 8", "Court 9", "Court 10", "Court 11", "Court 12"]
-};
-
-// Time slots from 7am to 1am with 30-minute intervals
-const timeSlots = [];
-for (let hour = 7; hour <= 24; hour++) {
-    timeSlots.push(`${hour % 24}:00`);
-    timeSlots.push(`${hour % 24}:30`);
-}
-timeSlots.push('1:00');
-
-// Shorter list of time slots for display in the table headers
-const displayTimeSlots = [];
-for (let hour = 7; hour <= 24; hour += 3) {
-    displayTimeSlots.push(`${hour % 24}:00`);
-}
-displayTimeSlots.push('1:00');
-
-// Mock database for users and bookings
-let users = [
-    { id: 1, username: 'admint', password: 'minhbeo', name: 'Admin User', isAdmin: true },
-    { id: 2, username: 'user1', password: 'password1', name: 'John Doe', isAdmin: false }
-];
-
-// Check if users are already in localStorage
-if (!localStorage.getItem('users')) {
-    localStorage.setItem('users', JSON.stringify(users));
-} else {
-    // Make sure the admin user exists
-    const storedUsers = JSON.parse(localStorage.getItem('users'));
-    const adminExists = storedUsers.some(user => user.username === 'admint' && user.isAdmin === true);
-    
-    if (!adminExists) {
-        // Add admin user if it doesn't exist
-        storedUsers.push({ id: storedUsers.length + 1, username: 'admint', password: 'minhbeo', name: 'Admin User', isAdmin: true });
-        localStorage.setItem('users', JSON.stringify(storedUsers));
-    }
-    
-    users = storedUsers;
-}
-
 let bookings = [
     // Example bookings
     { id: 1, userId: 2, courtId: 1, date: '2025-03-04', time: '10:00' },
@@ -82,6 +31,7 @@ let bookings = [
 function initApp() {
     setupEventListeners();
     loadUserFromStorage();
+    loadBookingsFromStorage();
     
     // Force check for admin status when app initializes
     if (currentUser && currentUser.username === 'admint') {
@@ -112,19 +62,50 @@ function initApp() {
     }
 }
 
+// Load bookings from localStorage
+function loadBookingsFromStorage() {
+    const storedBookings = localStorage.getItem('bookings');
+    if (storedBookings) {
+        bookings = JSON.parse(storedBookings);
+    } else {
+        // Initialize with example bookings
+        localStorage.setItem('bookings', JSON.stringify(bookings));
+    }
+}
+
+// Check if user is admin
+function isUserAdmin() {
+    return currentUser && (currentUser.isAdmin === true || currentUser.username === 'admint');
+}
+
 // Setup event listeners
 function setupEventListeners() {
     // Auth related
-    loginBtn.addEventListener('click', openLoginModal);
-    closeLoginBtn.addEventListener('click', closeLoginModal);
+    if (loginBtn) {
+        loginBtn.addEventListener('click', openLoginModal);
+    }
+    
+    if (closeLoginBtn) {
+        closeLoginBtn.addEventListener('click', closeLoginModal);
+    }
+    
     window.addEventListener('click', (e) => {
         if (e.target === loginModal) closeLoginModal();
+        if (e.target === guestBookingModal) closeGuestBookingModal();
     });
-    loginForm.addEventListener('submit', handleLogin);
+    
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLogin);
+    }
     
     // Week navigation
-    prevWeekBtn.addEventListener('click', () => navigateWeek(-7));
-    nextWeekBtn.addEventListener('click', () => navigateWeek(7));
+    if (prevWeekBtn) {
+        prevWeekBtn.addEventListener('click', () => navigateWeek(-7));
+    }
+    
+    if (nextWeekBtn) {
+        nextWeekBtn.addEventListener('click', () => navigateWeek(7));
+    }
     
     // Court tabs navigation
     courtTabs.forEach(tab => {
@@ -142,19 +123,19 @@ function setupEventListeners() {
     }
     
     if (closeGuestBtn) {
-        closeGuestBtn.addEventListener('click', () => {
-            guestBookingModal.style.display = 'none';
-        });
+        closeGuestBtn.addEventListener('click', closeGuestBookingModal);
     }
     
-    window.addEventListener('click', (e) => {
-        if (e.target === guestBookingModal) {
-            guestBookingModal.style.display = 'none';
-        }
-    });
-    
     // Booking
-    bookBtn.addEventListener('click', handleBooking);
+    if (bookBtn) {
+        bookBtn.addEventListener('click', handleBooking);
+    }
+}
+
+function closeGuestBookingModal() {
+    if (guestBookingModal) {
+        guestBookingModal.style.display = 'none';
+    }
 }
 
 // Update court tabs active state
@@ -171,12 +152,18 @@ function updateCourtTabs() {
 
 // Authentication functions
 function openLoginModal() {
-    loginModal.style.display = 'flex';
+    if (loginModal) {
+        loginModal.style.display = 'flex';
+    }
 }
 
 function closeLoginModal() {
-    loginModal.style.display = 'none';
-    loginForm.reset();
+    if (loginModal) {
+        loginModal.style.display = 'none';
+        if (loginForm) {
+            loginForm.reset();
+        }
+    }
 }
 
 function handleLogin(e) {
@@ -210,6 +197,12 @@ function logout() {
     localStorage.removeItem('currentUser');
     updateAuthDisplay();
     renderCourts(); // Re-render to hide user's bookings
+    
+    // Hide admin notice
+    const adminNotice = document.getElementById('adminNotice');
+    if (adminNotice) {
+        adminNotice.style.display = 'none';
+    }
 }
 
 function saveUserToStorage(user) {
@@ -239,11 +232,23 @@ function loadUserFromStorage() {
 }
 
 function updateAuthDisplay() {
+    if (!authContainer) return;
+    
     if (currentUser) {
+        let adminButton = '';
+        if (currentUser.isAdmin || currentUser.username === 'admint') {
+            adminButton = `
+                <a href="admin/dashboard.html" class="admin-dashboard-btn">
+                    <i class="fas fa-cogs"></i> Admin Dashboard
+                </a>
+            `;
+        }
+        
         authContainer.innerHTML = `
             <div class="user-info">
                 <span class="user-name">Welcome, ${currentUser.name}</span>
             </div>
+            ${adminButton}
             <button class="btn btn-danger" id="logoutBtn">Logout</button>
         `;
         document.getElementById('logoutBtn').addEventListener('click', logout);
@@ -263,6 +268,8 @@ function navigateWeek(days) {
 }
 
 function updateWeekDisplay() {
+    if (!currentWeekDisplay) return;
+    
     const weekStart = new Date(currentDate);
     weekStart.setDate(currentDate.getDate() - currentDate.getDay() + (currentDate.getDay() === 0 ? -6 : 1)); // Start from Monday
     
@@ -278,6 +285,8 @@ function updateWeekDisplay() {
 
 // Generate court rendering
 function renderCourts() {
+    if (!courtsContainer) return;
+    
     courtsContainer.innerHTML = '';
     
     // Get the Monday of current week
@@ -288,7 +297,9 @@ function renderCourts() {
     const venueCourtNames = courtNames[currentCourtVenue];
     
     for (let courtIndex = 0; courtIndex < venueCourtNames.length; courtIndex++) {
-        const courtId = currentCourtVenue === 'lizunex' ? (courtIndex + 1) : (courtIndex + 7);
+        // Calculate courtId - courts are numbered 1-6 for each venue separately
+        const courtId = courtIndex + 1;
+        
         const courtElement = document.createElement('div');
         courtElement.className = 'court-schedule';
         
@@ -407,7 +418,7 @@ function generateDaysForCourt(courtId, weekStart) {
                     <strong>${day.dayOfWeek}</strong><br>
                     <span class="day-date">${day.formattedDate}</span>
                 </td>
-                ${generateTimeSlotsForDay(courtId, day.dateString)}
+                ${generateTimeSlotsForDay(courtId, day.dateString, day.dayOfWeek)}
             </tr>
         `;
     }
@@ -420,12 +431,17 @@ function generateDaysForCourt(courtId, weekStart) {
     return tableHtml;
 }
 
-function generateTimeSlotsForDay(courtId, dateString) {
+function generateTimeSlotsForDay(courtId, dateString, dayOfWeek) {
     let slotsHtml = '';
     
+    // Calculate the effective court ID based on venue
+    // For VNBC courts, add offset to court IDs (1-6 become 7-12)
+    const effectiveCourtId = currentCourtVenue === 'vnbc' ? courtId + 6 : courtId;
+    
     for (const time of timeSlots) {
-        const isOccupied = isSlotOccupied(courtId, dateString, time);
-        const isUserBooked = isSlotBookedByUser(courtId, dateString, time);
+        const isOccupied = isSlotOccupied(effectiveCourtId, dateString, time);
+        const isUserBooked = isSlotBookedByUser(effectiveCourtId, dateString, time);
+        const isRushHourSlot = isRushHour(time, dayOfWeek);
         
         let slotClass = 'time-slot';
         if (isUserBooked) {
@@ -436,9 +452,17 @@ function generateTimeSlotsForDay(courtId, dateString) {
             slotClass += ' available';
         }
         
+        if (isRushHourSlot) {
+            slotClass += ' rush-hour';
+        }
+        
         slotsHtml += `
             <td>
-                <div class="${slotClass}" data-court="${courtId}" data-date="${dateString}" data-time="${time}"></div>
+                <div class="${slotClass}" 
+                    data-court="${effectiveCourtId}" 
+                    data-date="${dateString}" 
+                    data-time="${time}" 
+                    data-rush="${isRushHourSlot ? 'true' : 'false'}"></div>
             </td>
         `;
     }
@@ -450,31 +474,40 @@ function addTimeSlotListeners() {
     const slots = document.querySelectorAll('.time-slot');
     
     slots.forEach(slot => {
-        if (!slot.classList.contains('occupied') && !slot.classList.contains('user-booked')) {
-            slot.addEventListener('click', toggleSlotSelection);
-        } else if (slot.classList.contains('occupied')) {
-            slot.addEventListener('click', () => {
-                alert('This slot is already booked.');
-            });
-        }
+        // All time slots, when clicked, will either show login modal or allow selection
+        slot.addEventListener('click', handleTimeSlotClick);
     });
 }
 
-function toggleSlotSelection() {
-    // Don't allow selection if not logged in
+function handleTimeSlotClick(event) {
+    const timeSlot = event.currentTarget;
+    
+    // Don't allow interaction with occupied slots
+    if (timeSlot.classList.contains('occupied')) {
+        alert('This slot is already booked.');
+        return;
+    }
+    
+    // If not logged in, show login modal
     if (!currentUser) {
         openLoginModal();
         return;
     }
     
     // Don't allow toggling user's already booked slots
-    if (this.classList.contains('user-booked')) {
+    if (timeSlot.classList.contains('user-booked')) {
         return;
     }
     
+    // If user is logged in, toggle selection
+    toggleSlotSelection.call(timeSlot);
+}
+
+function toggleSlotSelection() {
     const courtId = parseInt(this.dataset.court);
     const date = this.dataset.date;
     const time = this.dataset.time;
+    const isRushHour = this.dataset.rush === 'true';
     
     if (this.classList.contains('available')) {
         // Select the slot
@@ -485,7 +518,8 @@ function toggleSlotSelection() {
             courtId,
             date,
             time,
-            displayTime: formatDisplayTime(time)
+            displayTime: formatDisplayTime(time),
+            isRushHour
         });
     } else if (this.classList.contains('selected')) {
         // Deselect the slot
@@ -509,6 +543,8 @@ function toggleSlotSelection() {
 }
 
 function updateBookButtonState() {
+    if (!bookBtn) return;
+    
     if (selectedSlots.length > 0) {
         bookBtn.classList.add('active');
     } else {
@@ -517,6 +553,8 @@ function updateBookButtonState() {
 }
 
 function updateSelectionSummary() {
+    if (!selectionSummary || !selectedCount || !selectionDetails) return;
+    
     if (selectedSlots.length > 0) {
         selectedCount.textContent = selectedSlots.length;
         
@@ -524,11 +562,16 @@ function updateSelectionSummary() {
         const groupedSlots = {};
         
         selectedSlots.forEach(slot => {
-            const key = `Court ${slot.courtId} - ${formatDisplayDate(slot.date)}`;
+            const venueName = getVenueNameFromCourtId(slot.courtId);
+            const courtDisplayName = getCourtDisplayName(slot.courtId);
+            const key = `${venueName} ${courtDisplayName} - ${formatDisplayDate(slot.date)}`;
+            
             if (!groupedSlots[key]) {
                 groupedSlots[key] = [];
             }
-            groupedSlots[key].push(slot.displayTime);
+            
+            const displayTime = `${slot.displayTime}${slot.isRushHour ? ' (Rush)' : ''}`;
+            groupedSlots[key].push(displayTime);
         });
         
         let detailsHtml = '';
@@ -543,8 +586,18 @@ function updateSelectionSummary() {
     }
 }
 
+function getVenueNameFromCourtId(courtId) {
+    // VNBC courts are 7-12, Lizunex are 1-6
+    return courtId > 6 ? 'VNBC' : 'Lizunex';
+}
+
+function getCourtDisplayName(courtId) {
+    // Convert to display name (Court 1-6 for each venue)
+    return `Court ${courtId > 6 ? courtId - 6 : courtId}`;
+}
+
 function handleBooking() {
-    if (!selectedSlots.length || !bookBtn.classList.contains('active')) {
+    if (!selectedSlots.length || !bookBtn || !bookBtn.classList.contains('active')) {
         return;
     }
     
@@ -556,7 +609,9 @@ function handleBooking() {
         window.location.href = 'payment.html';
     } else {
         // Guest user - show guest information form
-        document.getElementById('guestBookingModal').style.display = 'flex';
+        if (guestBookingModal) {
+            guestBookingModal.style.display = 'flex';
+        }
     }
 }
 
@@ -632,4 +687,67 @@ function isSlotBookedByUser(courtId, date, time) {
 }
 
 // Call init when the DOM is fully loaded
-document.addEventListener('DOMContentLoaded', initApp);
+document.addEventListener('DOMContentLoaded', initApp); currentUser = null;
+let selectedSlots = [];
+let currentDate = new Date();
+let currentCourtPage = 1;
+let currentCourtVenue = 'lizunex'; // Default venue
+const courtCount = 6;
+const courtsPerPage = 6; // Show all 6 courts at once
+const daysInWeek = 7;
+const courtNames = {
+    lizunex: ["Court 1", "Court 2", "Court 3", "Court 4", "Court 5", "Court 6"],
+    vnbc: ["Court 1", "Court 2", "Court 3", "Court 4", "Court 5", "Court 6"] // Fixed to start at 1 instead of 7
+};
+
+// Time slots from 7am to 1am with 30-minute intervals
+const timeSlots = [];
+for (let hour = 7; hour <= 24; hour++) {
+    timeSlots.push(`${hour % 24}:00`);
+    timeSlots.push(`${hour % 24}:30`);
+}
+timeSlots.push('1:00');
+
+// Shorter list of time slots for display in the table headers
+const displayTimeSlots = [];
+for (let hour = 7; hour <= 24; hour += 3) {
+    displayTimeSlots.push(`${hour % 24}:00`);
+}
+displayTimeSlots.push('1:00');
+
+// Rush hours (6 PM - 9 PM weekdays, 9 AM - 9 PM weekends)
+function isRushHour(time, day) {
+    const hour = parseInt(time.split(':')[0]);
+    const isWeekend = (day === 'Sat' || day === 'Sun');
+    
+    if (isWeekend) {
+        return hour >= 9 && hour < 21; // 9 AM - 9 PM on weekends
+    } else {
+        return hour >= 18 && hour < 21; // 6 PM - 9 PM on weekdays
+    }
+}
+
+// Mock database for users and bookings
+let users = [
+    { id: 1, username: 'admint', password: 'minhbeo', name: 'Admin User', isAdmin: true },
+    { id: 2, username: 'user1', password: 'password1', name: 'John Doe', isAdmin: false }
+];
+
+// Check if users are already in localStorage
+if (!localStorage.getItem('users')) {
+    localStorage.setItem('users', JSON.stringify(users));
+} else {
+    // Make sure the admin user exists
+    const storedUsers = JSON.parse(localStorage.getItem('users'));
+    const adminExists = storedUsers.some(user => user.username === 'admint' && user.isAdmin === true);
+    
+    if (!adminExists) {
+        // Add admin user if it doesn't exist
+        storedUsers.push({ id: storedUsers.length + 1, username: 'admint', password: 'minhbeo', name: 'Admin User', isAdmin: true });
+        localStorage.setItem('users', JSON.stringify(storedUsers));
+    }
+    
+    users = storedUsers;
+}
+
+let

@@ -21,6 +21,18 @@
         .pricing-header h1 {
             color: var(--secondary-color);
             margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .pricing-header h1:after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background-color: var(--accent-color);
         }
         
         .pricing-header p {
@@ -55,27 +67,59 @@
             color: white;
             padding: 20px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
         }
         
-        .pricing-card.premium .pricing-card-header {
-            background-color: var(--accent-color);
+        .pricing-card-header:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(to right, rgba(0,184,148,0), rgba(0,210,211,0.3));
+            z-index: 1;
+        }
+        
+        .pricing-card.rush-hour .pricing-card-header {
+            background-color: var(--rush-hour-color);
             color: var(--dark-text);
+        }
+        
+        .pricing-card.normal-hour .pricing-card-header {
+            background-color: var(--normal-hour-color);
+            color: var(--dark-text);
+        }
+        
+        .pricing-card.rush-hour .pricing-card-header:before {
+            background-image: linear-gradient(to right, rgba(253,203,110,0), rgba(253,203,110,0.3));
+        }
+        
+        .pricing-card.normal-hour .pricing-card-header:before {
+            background-image: linear-gradient(to right, rgba(85,239,196,0), rgba(85,239,196,0.3));
         }
         
         .pricing-card h2 {
             margin: 0;
             font-size: 1.8rem;
+            position: relative;
+            z-index: 2;
         }
         
         .pricing-price {
             font-size: 2.5rem;
             font-weight: bold;
             margin: 10px 0 0;
+            position: relative;
+            z-index: 2;
         }
         
         .pricing-period {
             font-size: 0.9rem;
             opacity: 0.8;
+            position: relative;
+            z-index: 2;
         }
         
         .pricing-card-body {
@@ -91,6 +135,8 @@
         .pricing-features li {
             padding: 10px 0;
             border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
         }
         
         .pricing-features li:last-child {
@@ -100,10 +146,16 @@
         .pricing-features li i {
             color: var(--primary-color);
             margin-right: 10px;
+            width: 16px;
+            text-align: center;
         }
         
-        .pricing-card.premium .pricing-features li i {
-            color: var(--accent-color);
+        .pricing-card.rush-hour .pricing-features li i {
+            color: var(--rush-hour-color);
+        }
+        
+        .pricing-card.normal-hour .pricing-features li i {
+            color: var(--normal-hour-color);
         }
         
         .pricing-btn {
@@ -115,20 +167,42 @@
             padding: 12px 20px;
             border-radius: 5px;
             font-weight: bold;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, transform 0.3s;
         }
         
-        .pricing-card.premium .pricing-btn {
-            background-color: var(--accent-color);
+        .pricing-card.rush-hour .pricing-btn {
+            background-color: var(--rush-hour-color);
+            color: var(--dark-text);
+        }
+        
+        .pricing-card.normal-hour .pricing-btn {
+            background-color: var(--normal-hour-color);
             color: var(--dark-text);
         }
         
         .pricing-btn:hover {
             background-color: #28b062;
+            transform: translateY(-2px);
         }
         
-        .pricing-card.premium .pricing-btn:hover {
-            background-color: #00e0e0;
+        .pricing-card.rush-hour .pricing-btn:hover {
+            background-color: #f9b846;
+        }
+        
+        .pricing-card.normal-hour .pricing-btn:hover {
+            background-color: #41d6aa;
+        }
+        
+        .pricing-time-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            font-size: 0.8rem;
+            margin-top: 8px;
+            font-weight: normal;
+            position: relative;
+            z-index: 2;
         }
         
         .pricing-notes {
@@ -136,6 +210,7 @@
             padding: 30px;
             border-radius: 10px;
             margin-top: 40px;
+            border-left: 4px solid var(--primary-color);
         }
         
         .pricing-notes h3 {
@@ -168,43 +243,45 @@
     <div class="pricing-container">
         <div class="pricing-header">
             <h1>Badminton Court Pricing</h1>
-            <p>Choose the package that fits your needs. Whether you're a casual player or a competitive athlete, we have options for everyone.</p>
+            <p>Choose the option that fits your schedule. We offer different rates for rush hours and normal hours to accommodate all players.</p>
         </div>
         
         <div class="pricing-cards">
-            <!-- Standard Court Card -->
-            <div class="pricing-card">
+            <!-- Normal Hour Card -->
+            <div class="pricing-card normal-hour">
                 <div class="pricing-card-header">
-                    <h2>Standard Rate</h2>
+                    <h2>Normal Hours</h2>
                     <div class="pricing-price">$15</div>
                     <div class="pricing-period">per 30 minutes</div>
+                    <div class="pricing-time-badge">7AM - 6PM Weekdays</div>
                 </div>
                 <div class="pricing-card-body">
                     <ul class="pricing-features">
-                        <li><i class="fas fa-check"></i> Access to all Lizunex courts</li>
+                        <li><i class="fas fa-check"></i> All courts available</li>
                         <li><i class="fas fa-check"></i> Standard shuttlecocks available</li>
                         <li><i class="fas fa-check"></i> Basic equipment rental</li>
                         <li><i class="fas fa-check"></i> Water dispenser access</li>
-                        <li><i class="fas fa-times"></i> No trainer service</li>
+                        <li><i class="fas fa-check"></i> Less crowded environment</li>
                     </ul>
                     <a href="index.html" class="pricing-btn">Book Now</a>
                 </div>
             </div>
             
-            <!-- Premium Court Card -->
-            <div class="pricing-card premium">
+            <!-- Rush Hour Card -->
+            <div class="pricing-card rush-hour">
                 <div class="pricing-card-header">
-                    <h2>Premium Rate</h2>
+                    <h2>Rush Hours</h2>
                     <div class="pricing-price">$20</div>
                     <div class="pricing-period">per 30 minutes</div>
+                    <div class="pricing-time-badge">6PM - 9PM Weekdays & 9AM - 9PM Weekends</div>
                 </div>
                 <div class="pricing-card-body">
                     <ul class="pricing-features">
-                        <li><i class="fas fa-check"></i> Access to all VNBC courts</li>
+                        <li><i class="fas fa-check"></i> All courts available</li>
                         <li><i class="fas fa-check"></i> Premium shuttlecocks included</li>
                         <li><i class="fas fa-check"></i> Full equipment rental</li>
                         <li><i class="fas fa-check"></i> Refreshment service</li>
-                        <li><i class="fas fa-check"></i> Trainer available (additional fee)</li>
+                        <li><i class="fas fa-check"></i> Vibrant playing atmosphere</li>
                     </ul>
                     <a href="index.html" class="pricing-btn">Book Now</a>
                 </div>
@@ -222,8 +299,8 @@
                         <li><i class="fas fa-check"></i> 20 hours of play time</li>
                         <li><i class="fas fa-check"></i> Access to all courts</li>
                         <li><i class="fas fa-check"></i> Priority booking</li>
+                        <li><i class="fas fa-check"></i> 10% discount on rush hours</li>
                         <li><i class="fas fa-check"></i> Free equipment rental</li>
-                        <li><i class="fas fa-check"></i> 10% discount on additional hours</li>
                     </ul>
                     <a href="contact.html" class="pricing-btn">Contact Us</a>
                 </div>
@@ -233,11 +310,13 @@
         <div class="pricing-notes">
             <h3>Additional Information</h3>
             <ul>
+                <li><strong>Rush Hours:</strong> 6PM - 9PM on weekdays and 9AM - 9PM on weekends have higher rates due to increased demand.</li>
+                <li><strong>Normal Hours:</strong> All other times outside rush hours enjoy our standard rate.</li>
                 <li>All bookings require confirmation via phone or payment within 1 hour.</li>
                 <li>24-hour cancellation policy applies to all bookings.</li>
                 <li>Group booking discounts available for 4 or more courts.</li>
-                <li>Weekend rates may include a 10% surcharge during peak hours (6 PM - 9 PM).</li>
                 <li>Membership rates are subject to a minimum 3-month commitment.</li>
+                <li>Rates may be adjusted by admin staff according to seasonal demand.</li>
             </ul>
         </div>
     </div>

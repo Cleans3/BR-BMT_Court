@@ -68,8 +68,39 @@
         
         <div class="booking-instructions">
             <p>The table shows all available time slots from 7AM to 1AM for each court. Scroll horizontally if needed to see all hours.</p>
-            <p><span class="legend-item legend-available">Available</span> <span class="legend-item legend-occupied">Occupied</span> <span class="legend-item legend-selected">Selected</span> <span class="legend-item legend-user-booked">Your Bookings</span></p>
+            <p>
+                <span class="legend-item legend-available">Available</span> 
+                <span class="legend-item legend-occupied">Occupied</span> 
+                <span class="legend-item legend-selected">Selected</span> 
+                <span class="legend-item legend-user-booked">Your Bookings</span>
+                <span class="legend-item legend-rush-hour">Rush Hour</span>
+            </p>
+            <p><small>Rush hours: 6PM-9PM on weekdays & 9AM-9PM on weekends (marked with ★). Rush hour slots cost $20 instead of $15.</small></p>
         </div>
+
+    <!-- Guest Booking Modal -->
+    <div class="login-modal" id="guestBookingModal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-btn" id="closeGuestBtn">&times;</span>
+            <div class="modal-header">
+                <h2>Guest Booking</h2>
+            </div>
+            <form id="guestBookingForm">
+                <div class="form-group">
+                    <label for="guestName">Your Name</label>
+                    <input type="text" id="guestName" placeholder="Enter your name" required>
+                </div>
+                <div class="form-group">
+                    <label for="guestPhone">Phone Number</label>
+                    <input type="tel" id="guestPhone" placeholder="Enter your phone number" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" id="guestBookBtn">Continue to Payment</button>
+                </div>
+                <p class="form-note">Want to create an account? <a href="register.html">Register here</a></p>
+            </form>
+        </div>
+    </div>
         
         <div class="booking-calendar">
             <div id="courtsContainer" class="courts-container">
