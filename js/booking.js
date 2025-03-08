@@ -19,6 +19,7 @@ const guestBookingForm = document.getElementById('guestBookingForm');
 const guestBookBtn = document.getElementById('guestBookBtn');
 
 // App State
+let bookBtn = document.getElementById('bookButton');
 let currentUser = null;
 let selectedSlots = [];
 let currentDate = new Date();
@@ -637,34 +638,29 @@ function getCourtDisplayName(courtId) {
 }
 
 function handleBooking() {
+    // Make sure we have selected slots and the button is active
     if (!selectedSlots.length || !bookBtn || !bookBtn.classList.contains('active')) {
         return;
     }
     
+    // Simply store the selections - no login required
+    sessionStorage.setItem('selectedSlots', JSON.stringify(selectedSlots));
+    
     if (currentUser) {
-        // Logged in user - store selections in sessionStorage for the payment page
-        sessionStorage.setItem('selectedSlots', JSON.stringify(selectedSlots));
-        
-        // Redirect to payment page
+        // User is logged in - go directly to payment page
         window.location.href = 'payment.html';
     } else {
-        // Guest user - show guest information form
+        // Guest user - show guest booking form
         if (guestBookingModal) {
             guestBookingModal.style.display = 'flex';
         } else {
-            // If guest modal doesn't exist, default to guest payment with a generic name
-            sessionStorage.setItem('selectedSlots', JSON.stringify(selectedSlots));
-            
-            // Create a default guest user
+            // Fallback - create a default guest user
             const guestUser = {
                 id: 'guest-' + Date.now(),
                 name: 'Guest User',
                 isGuest: true
             };
-            
             sessionStorage.setItem('guestUser', JSON.stringify(guestUser));
-            
-            // Redirect to guest payment page
             window.location.href = 'guest-payment.html';
         }
     }

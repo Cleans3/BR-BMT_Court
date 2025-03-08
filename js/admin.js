@@ -1,3 +1,258 @@
+// DOM Elements - minimized for essential functionality
+const authContainer = document.getElementById('authContainer');
+const bookingsTable = document.getElementById('bookingsTable');
+const courtsTable = document.getElementById('courtsTable');
+const usersTable = document.getElementById('usersTable');
+const totalBookingsValue = document.getElementById('totalBookingsValue');
+const totalRevenueValue = document.getElementById('totalRevenueValue');
+const activeUsersValue = document.getElementById('activeUsersValue');
+const dashboardSections = document.querySelectorAll('.dashboard-section');
+
+// App State
+let currentUser = null;
+let users = [];
+let bookings = [];
+let courts = [];
+let notifications = [];
+
+// Constants
+const PRICE_PER_SLOT = 15.00;
+const BOOKING_FEE = 2.00;
+
+// Main initialization function
+function initDashboard() {
+    // Load the current user
+    const storedUser = localStorage.getItem('currentUser');
+    if (storedUser) {
+        currentUser = JSON.parse(storedUser);
+    }
+    
+    // Basic admin check
+    if (!currentUser || !(currentUser.isAdmin === true || currentUser.username === 'admint')) {
+        alert('Access denied. Admins only.');
+        window.location.href = '../index.html';
+        return;
+    }
+    
+    // Update auth display
+    updateAuthDisplay();
+    
+    // Load data
+    loadData();
+    
+    // Render tables
+    renderAllTables();
+    
+    // Show the default section (bookings)
+    showSection('bookings');
+    
+    // Set up navigation - CRITICAL PART
+    setupNavigation();
+}
+
+// Load data from localStorage
+function loadData() {
+    // Load users
+    const storedUsers = localStorage.getItem('users');
+    if (storedUsers) {
+        users = JSON.parse(storedUsers);
+    }
+    
+    // Load bookings
+    const storedBookings = localStorage.getItem('bookings');
+    if (storedBookings) {
+        bookings = JSON.parse(storedBookings);
+    }
+    
+    // Load courts (or use defaults)
+    courts = [
+        { id: 1, name: "Court 1", isActive: true },
+        { id: 2, name: "Court 2", isActive: true },
+        { id: 3, name: "Court 3", isActive: true },
+        { id: 4, name: "Court 4", isActive: true },
+        { id: 5, name: "Court 5", isActive: true },
+        { id: 6, name: "Court 6", isActive: true }
+    ];
+    
+    // Load notifications
+    const storedNotifications = localStorage.getItem('adminNotifications');
+    if (storedNotifications) {
+        notifications = JSON.parse(storedNotifications);
+    }
+}
+
+// Update auth display
+function updateAuthDisplay() {
+    if (authContainer) {
+        authContainer.innerHTML = `
+            <div class="user-info">
+                <span class="user-name">Admin: ${currentUser.name}</span>
+            </div>
+            <a href="../index.html" class="btn btn-primary">Back to Site</a>
+            <button class="btn btn-danger" id="logoutBtn">Logout</button>
+        `;
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            localStorage.removeItem('currentUser');
+            window.location.href = '../index.html';
+        });
+    }
+}
+
+// Critical function to set up navigation
+function setupNavigation() {
+    const navLinks = document.querySelectorAll('.sidebar-nav a');
+    
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Get the section ID
+            const sectionId = this.getAttribute('data-section');
+            
+            // Show that section
+            showSection(sectionId);
+            
+            // Update active link
+            navLinks.forEach(navLink => {
+                navLink.classList.remove('active');
+            });
+            this.classList.add('active');
+        });
+    });
+    
+    // Set up notification toggle
+    const notificationToggle = document.getElementById('notificationToggle');
+    if (notificationToggle) {
+        notificationToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const dropdown = document.getElementById('notificationDropdown');
+            if (dropdown) {
+                dropdown.classList.toggle('show');
+            }
+        });
+    }
+    
+    // Add court button
+    const addCourtBtn = document.getElementById('addCourtBtn');
+    if (addCourtBtn) {
+        addCourtBtn.addEventListener('click', function() {
+            const courtName = prompt('Enter court name:');
+            if (courtName && courtName.trim()) {
+                const newId = courts.length > 0 ? Math.max(...courts.map(c => c.id)) + 1 : 1;
+                courts.push({
+                    id: newId,
+                    name: courtName.trim(),
+                    isActive: true
+                });
+                renderCourtsTable();
+                alert('Court added successfully!');
+            }
+        });
+    }
+}
+
+// Show a specific section
+function showSection(sectionId) {
+    console.log("Showing section:", sectionId);
+    
+    // Hide all sections
+    dashboardSections.forEach(section => {
+        section.style.display = 'none';
+    });
+    
+    // Show the requested section
+    const section = document.getElementById(sectionId + '-section');
+    if (section) {
+        section.style.display = 'block';
+    } else {
+        console.error("Section not found:", sectionId + '-section');
+    }
+}
+
+// Render tables
+function renderAllTables() {
+    renderBookingsTable();
+    renderCourtsTable();
+    renderUsersTable();
+}
+
+function renderBookingsTable() {
+    if (!bookingsTable) return;
+    
+    let html = '';
+    
+    bookings.forEach(booking => {
+        const user = users.find(u => u.id === booking.userId) || { name: booking.userName || 'Unknown User' };
+        
+        html += `
+            <tr>
+                <td>#${booking.id}</td>
+                <td>${user.name}</td>
+                <td>${booking.courtName || 'Court ' + booking.courtId}</td>
+                <td>${booking.date || 'Unknown'}</td>
+                <td>${booking.time || 'Unknown'}</td>
+                <td><span class="status-badge status-${booking.status || 'pending'}">${booking.status || 'pending'}</span></td>
+                <td class="action-buttons">
+                    <button class="btn btn-success btn-sm">Confirm</button>
+                    <button class="btn btn-danger btn-sm">Cancel</button>
+                    <button class="btn btn-primary btn-sm">Edit</button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    bookingsTable.innerHTML = html || '<tr><td colspan="7" style="text-align: center;">No bookings found</td></tr>';
+}
+
+function renderCourtsTable() {
+    if (!courtsTable) return;
+    
+    let html = '';
+    
+    courts.forEach(court => {
+        html += `
+            <tr>
+                <td>${court.id}</td>
+                <td>${court.name}</td>
+                <td>${court.isActive ? 'Active' : 'Inactive'}</td>
+                <td class="action-buttons">
+                    <button class="btn btn-primary btn-sm">Edit</button>
+                    <button class="btn ${court.isActive ? 'btn-danger' : 'btn-success'} btn-sm">
+                        ${court.isActive ? 'Deactivate' : 'Activate'}
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    courtsTable.innerHTML = html || '<tr><td colspan="4" style="text-align: center;">No courts found</td></tr>';
+}
+
+function renderUsersTable() {
+    if (!usersTable) return;
+    
+    let html = '';
+    
+    users.forEach(user => {
+        html += `
+            <tr>
+                <td>${user.id}</td>
+                <td>${user.name}</td>
+                <td>${user.username}</td>
+                <td>${user.isAdmin ? 'Admin' : 'Customer'}</td>
+                <td class="action-buttons">
+                    <button class="btn btn-primary btn-sm">Edit</button>
+                    <button class="btn btn-danger btn-sm">Delete</button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    usersTable.innerHTML = html || '<tr><td colspan="5" style="text-align: center;">No users found</td></tr>';
+}
+
+// Start the dashboard when DOM is loaded
+document.addEventListener('DOMContentLoaded', initDashboard);
 // DOM Elements
 const authContainer = document.getElementById('authContainer');
 const bookingsTable = document.getElementById('bookingsTable');
