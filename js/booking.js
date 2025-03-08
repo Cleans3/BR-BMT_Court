@@ -750,4 +750,68 @@ if (!localStorage.getItem('users')) {
     users = storedUsers;
 }
 
-let
+// Update the handleTimeSlotClick function to make login optional
+function handleTimeSlotClick(event) {
+    const timeSlot = event.currentTarget;
+    
+    // Don't allow interaction with occupied slots
+    if (timeSlot.classList.contains('occupied')) {
+        alert('This slot is already booked.');
+        return;
+    }
+    
+    // Don't allow toggling user's already booked slots
+    if (timeSlot.classList.contains('user-booked')) {
+        return;
+    }
+    
+    // Allow selection even if not logged in
+    toggleSlotSelection.call(timeSlot);
+}
+
+// Update the isRushHour function with new hours (5pm-11pm)
+function isRushHour(time, day) {
+    const hour = parseInt(time.split(':')[0]);
+    const isWeekend = (day === 'Sat' || day === 'Sun');
+    
+    if (isWeekend) {
+        return hour >= 9 && hour < 23; // 9 AM - 11 PM on weekends
+    } else {
+        return hour >= 17 && hour < 23; // 5 PM - 11 PM on weekdays
+    }
+}
+
+// Update the handleBooking function to accommodate guest bookings without login
+function handleBooking() {
+    if (!selectedSlots.length || !bookBtn || !bookBtn.classList.contains('active')) {
+        return;
+    }
+    
+    if (currentUser) {
+        // Logged in user - store selections in sessionStorage for the payment page
+        sessionStorage.setItem('selectedSlots', JSON.stringify(selectedSlots));
+        
+        // Redirect to payment page
+        window.location.href = 'payment.html';
+    } else {
+        // Guest user - show guest information form
+        if (guestBookingModal) {
+            guestBookingModal.style.display = 'flex';
+        } else {
+            // If guest modal doesn't exist, store selections for guest payment directly
+            sessionStorage.setItem('selectedSlots', JSON.stringify(selectedSlots));
+            
+            // Create a default guest user
+            const guestUser = {
+                id: 'guest-' + Date.now(),
+                name: 'Guest User',
+                isGuest: true
+            };
+            
+            sessionStorage.setItem('guestUser', JSON.stringify(guestUser));
+            
+            // Redirect to guest payment page
+            window.location.href = 'guest-payment.html';
+        }
+    }
+}

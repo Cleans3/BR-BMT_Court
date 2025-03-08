@@ -1,196 +1,4 @@
-function updateNotificationCount() {
-    const unreadCount = notifications.filter(n => !n.isRead).length;
-    
-    // Update count display
-    if (notificationCount) {
-        notificationCount.textContent = unreadCount;
-    }
-    
-    // Show/hide badge
-    if (notificationBadge) {
-        if (unreadCount > 0) {
-            notificationBadge.style.display = 'flex';
-        } else {
-            notificationBadge.style.display = 'none';
-        }
-    }
-}
-
-function renderNotifications() {
-    if (!notificationsList) return;
-    
-    let html = '';
-    
-    if (notifications.length === 0) {
-        html = '<li class="notification-item empty">No notifications</li>';
-    } else {
-        // Sort by creation date (newest first)
-        const sortedNotifications = [...notifications].sort((a, b) => {
-            return new Date(b.createdAt) - new Date(a.createdAt);
-        });
-        
-        // Take only the 5 most recent ones
-        const recentNotifications = sortedNotifications.slice(0, 5);
-        
-        recentNotifications.forEach(notification => {
-            const isUnread = !notification.isRead ? 'unread' : '';
-            const isGuest = notification.isGuest ? 'guest-notification' : '';
-            const timeAgo = getTimeAgo(new Date(notification.createdAt));
-            
-            html += `
-                <li class="notification-item ${isUnread} ${isGuest}" data-id="${notification.id}">
-                    <div class="notification-header">
-                        <span class="notification-title">${notification.title}</span>
-                        <span class="notification-time">${timeAgo}</span>
-                    </div>
-                    <div class="notification-content">${notification.message}</div>
-                    ${notification.detailedMessage ? 
-                        `<div class="notification-details">${notification.detailedMessage}</div>` : ''}
-                    <div class="notification-actions">
-                        <button class="btn-mark-read" onclick="markNotificationAsRead(${notification.id})">
-                            Mark as ${notification.isRead ? 'unread' : 'read'}
-                        </button>
-                    </div>
-                </li>
-            `;
-        });
-        
-        // Add a "View All" link if there are more than 5 notifications
-        if (notifications.length > 5) {
-            html += `
-                <li class="notification-item view-all">
-                    <a href="#" data-section="notifications" onclick="showAllNotifications(event)">
-                        View all ${notifications.length} notifications
-                    </a>
-                </li>
-            `;
-        }
-    }
-    
-    notificationsList.innerHTML = html;
-}notifications
-        if (notifications.length > 5) {
-            html += `
-                <li class="notification-item view-all">
-                    <a href="#" data-section="notifications" onclick="showAllNotifications(event)">
-                        View all ${notifications.length} notifications
-                    </a>
-                </li>
-            `;
-        }
-    }
-    
-    notificationsList.innerHTML = html;
-}
-
-function toggleNotifications() {
-    const dropdown = document.getElementById('notificationDropdown');
-    dropdown.classList.toggle('show');
-}
-
-function markNotificationAsRead(notificationId) {
-    const notification = notifications.find(n => n.id === notificationId);
-    if (notification) {
-        notification.isRead = !notification.isRead;
-        
-        // Save to localStorage
-        localStorage.setItem('adminNotifications', JSON.stringify(notifications));
-        
-        // Update UI
-        updateNotificationCount();
-        renderNotifications();
-    }
-}
-
-function markAllNotificationsAsRead() {
-    notifications.forEach(notification => {
-        notification.isRead = true;
-    });
-    
-    // Save to localStorage
-    localStorage.setItem('adminNotifications', JSON.stringify(notifications));
-    
-    // Update UI
-    updateNotificationCount();
-    renderNotifications();
-}
-
-function showAllNotifications(event) {
-    event.preventDefault();
-    
-    // Show the notifications section
-    showSection('notifications');
-    
-    // Update active nav link
-    navLinks.forEach(link => {
-        if (link.getAttribute('data-section') === 'notifications') {
-            navLinks.forEach(l => l.classList.remove('active'));
-            link.classList.add('active');
-        }
-    });
-    
-    // Close dropdown
-    document.getElementById('notificationDropdown').classList.remove('show');
-}
-
-// Helper function to display time ago
-function getTimeAgo(date) {
-    const now = new Date();
-    const diffInSeconds = Math.floor((now - date) / 1000);
-    
-    if (diffInSeconds < 60) {
-        return 'Just now';
-    }
-    
-    const diffInMinutes = Math.floor(diffInSeconds / 60);
-    if (diffInMinutes < 60) {
-        return `${diffInMinutes} min${diffInMinutes > 1 ? 's' : ''} ago`;
-    }
-    
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) {
-        return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
-    }
-    
-    const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays < 30) {
-        return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
-    }
-    
-    const diffInMonths = Math.floor(diffInDays / 30);
-    if (diffInMonths < 12) {
-        return `${diffInMonths} month${diffInMonths > 1 ? 's' : ''} ago`;
-    }
-    
-    const diffInYears = Math.floor(diffInMonths / 12);
-    return `${diffInYears} year${diffInYears > 1 ? 's' : ''} ago`;
-}function setupEventListeners() {
-    // Navigation
-    navLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const sectionId = link.getAttribute('data-section');
-            showSection(sectionId);
-            
-            // Update active link
-            navLinks.forEach(l => l.classList.remove('active'));
-            link.classList.add('active');
-        });
-    });
-    
-    // Search functionality
-    bookingSearch.addEventListener('input', filterBookings);
-    userSearch.addEventListener('input', filterUsers);
-    
-    // Settings form
-    settingsForm.addEventListener('submit', saveSettings);
-    
-    // Notification dropdown toggle
-    document.getElementById('notificationToggle').addEventListener('click', toggleNotifications);
-    
-    // Mark all notifications as read
-    document.getElementById('markAllRead').addEventListener('click', markAllNotificationsAsRead);
-}// DOM Elements
+// DOM Elements
 const authContainer = document.getElementById('authContainer');
 const bookingsTable = document.getElementById('bookingsTable');
 const courtsTable = document.getElementById('courtsTable');
@@ -206,6 +14,7 @@ const dashboardSections = document.querySelectorAll('.dashboard-section');
 const notificationsList = document.getElementById('notificationsList');
 const notificationCount = document.getElementById('notificationCount');
 const notificationBadge = document.getElementById('notificationBadge');
+const allNotificationsList = document.getElementById('allNotificationsList');
 
 // Constants
 const PRICE_PER_SLOT = 15.00; // $15 per 30-minute slot
@@ -245,6 +54,9 @@ function initDashboard() {
     renderAllTables();
     updateReports();
     setupEventListeners();
+    
+    // Show the default section (bookings)
+    showSection('bookings');
 }
 
 // Very strict admin check
@@ -322,6 +134,78 @@ function loadNotifications() {
     renderNotifications();
 }
 
+function updateNotificationCount() {
+    const unreadCount = notifications.filter(n => !n.isRead).length;
+    
+    // Update count display
+    if (notificationCount) {
+        notificationCount.textContent = unreadCount;
+    }
+    
+    // Show/hide badge
+    if (notificationBadge) {
+        if (unreadCount > 0) {
+            notificationBadge.style.display = 'flex';
+        } else {
+            notificationBadge.style.display = 'none';
+        }
+    }
+}
+
+function renderNotifications() {
+    if (!notificationsList) return;
+    
+    let html = '';
+    
+    if (notifications.length === 0) {
+        html = '<li class="notification-item empty">No notifications</li>';
+    } else {
+        // Sort by creation date (newest first)
+        const sortedNotifications = [...notifications].sort((a, b) => {
+            return new Date(b.createdAt) - new Date(a.createdAt);
+        });
+        
+        // Take only the 5 most recent ones
+        const recentNotifications = sortedNotifications.slice(0, 5);
+        
+        recentNotifications.forEach(notification => {
+            const isUnread = !notification.isRead ? 'unread' : '';
+            const isGuest = notification.isGuest ? 'guest-notification' : '';
+            const timeAgo = getTimeAgo(new Date(notification.createdAt));
+            
+            html += `
+                <li class="notification-item ${isUnread} ${isGuest}" data-id="${notification.id}">
+                    <div class="notification-header">
+                        <span class="notification-title">${notification.title}</span>
+                        <span class="notification-time">${timeAgo}</span>
+                    </div>
+                    <div class="notification-content">${notification.message}</div>
+                    ${notification.detailedMessage ? 
+                        `<div class="notification-details">${notification.detailedMessage}</div>` : ''}
+                    <div class="notification-actions">
+                        <button class="btn-mark-read" onclick="markNotificationAsRead(${notification.id})">
+                            Mark as ${notification.isRead ? 'unread' : 'read'}
+                        </button>
+                    </div>
+                </li>
+            `;
+        });
+        
+        // Add a "View All" link if there are more than 5 notifications
+        if (notifications.length > 5) {
+            html += `
+                <li class="notification-item view-all">
+                    <a href="#" data-section="notifications" onclick="showAllNotifications(event)">
+                        View all ${notifications.length} notifications
+                    </a>
+                </li>
+            `;
+        }
+    }
+    
+    notificationsList.innerHTML = html;
+}
+
 function updateAuthDisplay() {
     if (currentUser) {
         authContainer.innerHTML = `
@@ -360,11 +244,215 @@ function setupEventListeners() {
     });
     
     // Search functionality
-    bookingSearch.addEventListener('input', filterBookings);
-    userSearch.addEventListener('input', filterUsers);
+    if (bookingSearch) {
+        bookingSearch.addEventListener('input', filterBookings);
+    }
+    
+    if (userSearch) {
+        userSearch.addEventListener('input', filterUsers);
+    }
     
     // Settings form
-    settingsForm.addEventListener('submit', saveSettings);
+    if (settingsForm) {
+        settingsForm.addEventListener('submit', saveSettings);
+    }
+    
+    // Notification dropdown toggle
+    document.getElementById('notificationToggle').addEventListener('click', toggleNotifications);
+    
+    // Mark all notifications as read
+    document.getElementById('markAllRead').addEventListener('click', markAllNotificationsAsRead);
+    
+    // Clear all notifications
+    const clearAllBtn = document.getElementById('clearAllNotifications');
+    if (clearAllBtn) {
+        clearAllBtn.addEventListener('click', clearAllNotifications);
+    }
+    
+    // Notification filter buttons
+    const filterButtons = document.querySelectorAll('.notification-filters button');
+    if (filterButtons.length > 0) {
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const filter = this.getAttribute('data-filter');
+                filterNotifications(filter);
+                
+                // Update active class
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    }
+}
+
+// Add Court button functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const addCourtBtn = document.getElementById('addCourtBtn');
+    if (addCourtBtn) {
+        addCourtBtn.addEventListener('click', addNewCourt);
+    }
+});
+// Add these fixes after document.addEventListener('DOMContentLoaded', initDashboard);
+
+// Make sure the navigation links in the sidebar work correctly
+function fixSidebarNavigation() {
+    const navLinks = document.querySelectorAll('.sidebar-nav a');
+    
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Get the section to show
+            const sectionId = this.getAttribute('data-section');
+            
+            // Hide all sections
+            const sections = document.querySelectorAll('.dashboard-section');
+            sections.forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Show the selected section
+            const selectedSection = document.getElementById(sectionId + '-section');
+            if (selectedSection) {
+                selectedSection.style.display = 'block';
+            }
+            
+            // Update active class
+            navLinks.forEach(navLink => {
+                navLink.classList.remove('active');
+            });
+            this.classList.add('active');
+        });
+    });
+}
+
+// Load saved price settings on page load
+function loadSavedPriceSettings() {
+    const storedSettings = localStorage.getItem('pricingSettings');
+    if (storedSettings) {
+        const settings = JSON.parse(storedSettings);
+        
+        const courtPriceInput = document.getElementById('courtPrice');
+        const rushHourPriceInput = document.getElementById('rushHourPrice');
+        const bookingFeeInput = document.getElementById('bookingFee');
+        
+        if (courtPriceInput && settings.normalHourPrice) {
+            courtPriceInput.value = settings.normalHourPrice;
+        }
+        
+        if (rushHourPriceInput && settings.rushHourPrice) {
+            rushHourPriceInput.value = settings.rushHourPrice;
+        }
+        
+        if (bookingFeeInput && settings.bookingFee) {
+            bookingFeeInput.value = settings.bookingFee;
+        }
+    }
+}
+
+// Handle settings form submission
+function setupSettingsForm() {
+    const settingsForm = document.getElementById('settingsForm');
+    if (settingsForm) {
+        settingsForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const courtPrice = parseFloat(document.getElementById('courtPrice').value);
+            const rushHourPrice = parseFloat(document.getElementById('rushHourPrice').value);
+            const bookingFee = parseFloat(document.getElementById('bookingFee').value);
+            
+            // Validate inputs
+            if (isNaN(courtPrice) || isNaN(rushHourPrice) || isNaN(bookingFee)) {
+                alert('Please enter valid numbers for all prices');
+                return;
+            }
+            
+            // Save settings
+            const settings = {
+                normalHourPrice: courtPrice,
+                rushHourPrice: rushHourPrice,
+                bookingFee: bookingFee
+            };
+            
+            localStorage.setItem('pricingSettings', JSON.stringify(settings));
+            
+            alert('Settings saved successfully!');
+        });
+    }
+}
+
+// Add event listener to run after the page is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    initDashboard();
+    fixSidebarNavigation();
+    loadSavedPriceSettings();
+    setupSettingsForm();
+    
+    // Fix for notification dropdown toggle
+    const notificationToggle = document.getElementById('notificationToggle');
+    if (notificationToggle) {
+        notificationToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const dropdown = document.getElementById('notificationDropdown');
+            dropdown.classList.toggle('show');
+        });
+    }
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        const dropdown = document.getElementById('notificationDropdown');
+        if (dropdown && dropdown.classList.contains('show') && !e.target.closest('.notification-container')) {
+            dropdown.classList.remove('show');
+        }
+    });
+});
+function addNewCourt() {
+    const courtName = prompt('Enter court name:');
+    if (courtName && courtName.trim()) {
+        const newId = courts.length > 0 ? Math.max(...courts.map(c => c.id)) + 1 : 1;
+        courts.push({
+            id: newId,
+            name: courtName.trim(),
+            isActive: true
+        });
+        
+        renderCourtsTable();
+        alert('Court added successfully!');
+    }
+}
+
+function clearAllNotifications() {
+    if (confirm('Are you sure you want to clear all notifications?')) {
+        notifications = [];
+        localStorage.setItem('adminNotifications', JSON.stringify(notifications));
+        updateNotificationCount();
+        renderNotifications();
+        renderAllNotificationsList();
+    }
+}
+
+function filterNotifications(filter) {
+    if (!allNotificationsList) return;
+    
+    const items = allNotificationsList.querySelectorAll('.notification-item-large');
+    
+    items.forEach(item => {
+        if (filter === 'all') {
+            item.style.display = 'block';
+        } else if (filter === 'unread') {
+            if (item.classList.contains('unread')) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        } else if (filter === 'read') {
+            if (!item.classList.contains('unread')) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        }
+    });
 }
 
 function showSection(sectionId) {
@@ -374,7 +462,65 @@ function showSection(sectionId) {
     });
     
     // Show selected section
-    document.getElementById(`${sectionId}-section`).style.display = 'block';
+    const sectionElement = document.getElementById(`${sectionId}-section`);
+    if (sectionElement) {
+        sectionElement.style.display = 'block';
+    }
+}
+
+function toggleNotifications() {
+    const dropdown = document.getElementById('notificationDropdown');
+    dropdown.classList.toggle('show');
+}
+
+function markNotificationAsRead(notificationId) {
+    const notification = notifications.find(n => n.id === notificationId);
+    if (notification) {
+        notification.isRead = !notification.isRead;
+        
+        // Save to localStorage
+        localStorage.setItem('adminNotifications', JSON.stringify(notifications));
+        
+        // Update UI
+        updateNotificationCount();
+        renderNotifications();
+        renderAllNotificationsList();
+    }
+}
+
+function markAllNotificationsAsRead() {
+    notifications.forEach(notification => {
+        notification.isRead = true;
+    });
+    
+    // Save to localStorage
+    localStorage.setItem('adminNotifications', JSON.stringify(notifications));
+    
+    // Update UI
+    updateNotificationCount();
+    renderNotifications();
+    renderAllNotificationsList();
+    
+    // Close the dropdown
+    document.getElementById('notificationDropdown').classList.remove('show');
+}
+
+function showAllNotifications(event) {
+    event.preventDefault();
+    
+    // Show the notifications section
+    showSection('notifications');
+    
+    // Update active nav link
+    navLinks.forEach(link => {
+        if (link.getAttribute('data-section') === 'notifications') {
+            navLinks.forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
+        }
+    });
+    
+    // Close dropdown
+    document.getElementById('notificationDropdown').classList.remove('show');
 }
 
 function renderAllTables() {
@@ -385,7 +531,6 @@ function renderAllTables() {
 }
 
 function renderAllNotificationsList() {
-    const allNotificationsList = document.getElementById('allNotificationsList');
     if (!allNotificationsList) return;
     
     let html = '';
@@ -468,9 +613,9 @@ function viewBookingDetails(bookingId) {
             }
         });
         
-        // Highlight the booking row
+        // Highlight the booking row or scroll to it
         setTimeout(() => {
-            const bookingRow = document.querySelector(`#bookingsTable tr td:first-child:contains('#${bookingId}')`).parentNode;
+            const bookingRow = document.querySelector(`#bookingsTable tr:nth-child(${bookingId})`);
             if (bookingRow) {
                 bookingRow.classList.add('highlighted-row');
                 bookingRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -485,6 +630,8 @@ function viewBookingDetails(bookingId) {
 }
 
 function renderBookingsTable() {
+    if (!bookingsTable) return;
+    
     let html = '';
     
     bookings.forEach(booking => {
@@ -527,6 +674,68 @@ function renderBookingsTable() {
     });
     
     bookingsTable.innerHTML = html || '<tr><td colspan="7" style="text-align: center;">No bookings found</td></tr>';
+}
+
+function renderCourtsTable() {
+    if (!courtsTable) return;
+    
+    let html = '';
+    
+    courts.forEach(court => {
+        html += `
+            <tr>
+                <td>${court.id}</td>
+                <td>${court.name}</td>
+                <td>${court.isActive ? 'Active' : 'Inactive'}</td>
+                <td class="action-buttons">
+                    <button class="btn btn-primary btn-sm" onclick="editCourt(${court.id})">Edit</button>
+                    <button class="btn ${court.isActive ? 'btn-danger' : 'btn-success'} btn-sm" onclick="toggleCourtStatus(${court.id})">
+                        ${court.isActive ? 'Deactivate' : 'Activate'}
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    courtsTable.innerHTML = html;
+}
+
+function renderUsersTable() {
+    if (!usersTable) return;
+    
+    let html = '';
+    
+    users.forEach(user => {
+        html += `
+            <tr>
+                <td>${user.id}</td>
+                <td>${user.name}</td>
+                <td>${user.username}</td>
+                <td>${user.isAdmin ? 'Admin' : 'Customer'}</td>
+                <td class="action-buttons">
+                    <button class="btn btn-primary btn-sm" onclick="editUser(${user.id})">Edit</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteUser(${user.id})">Delete</button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    usersTable.innerHTML = html;
+}
+
+function updateReports() {
+    if (!totalBookingsValue || !totalRevenueValue || !activeUsersValue) return;
+    
+    // Total bookings count
+    totalBookingsValue.textContent = bookings.length;
+    
+    // Calculate total revenue
+    const revenue = bookings.length * (PRICE_PER_SLOT + BOOKING_FEE);
+    totalRevenueValue.textContent = `$${revenue.toFixed(2)}`;
+    
+    // Active users count (excluding admin)
+    const activeUsers = users.filter(user => !user.isAdmin).length;
+    activeUsersValue.textContent = activeUsers;
 }
 
 function confirmBookingById(bookingId) {
@@ -583,154 +792,14 @@ function editBookingById(bookingId) {
     }
 }
 
-function renderCourtsTable() {
-    let html = '';
-    
-    courts.forEach(court => {
-        html += `
-            <tr>
-                <td>${court.id}</td>
-                <td>${court.name}</td>
-                <td>${court.isActive ? 'Active' : 'Inactive'}</td>
-                <td class="action-buttons">
-                    <button class="btn btn-primary btn-sm" onclick="editCourt(${court.id})">Edit</button>
-                    <button class="btn ${court.isActive ? 'btn-danger' : 'btn-success'} btn-sm" onclick="toggleCourtStatus(${court.id})">
-                        ${court.isActive ? 'Deactivate' : 'Activate'}
-                    </button>
-                </td>
-            </tr>
-        `;
-    });
-    
-    courtsTable.innerHTML = html;
-}
-
-function renderUsersTable() {
-    let html = '';
-    
-    users.forEach(user => {
-        html += `
-            <tr>
-                <td>${user.id}</td>
-                <td>${user.name}</td>
-                <td>${user.username}</td>
-                <td>${user.isAdmin ? 'Admin' : 'Customer'}</td>
-                <td class="action-buttons">
-                    <button class="btn btn-primary btn-sm" onclick="editUser(${user.id})">Edit</button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteUser(${user.id})">Delete</button>
-                </td>
-            </tr>
-        `;
-    });
-    
-    usersTable.innerHTML = html;
-}
-
-function updateReports() {
-    // Total bookings count
-    totalBookingsValue.textContent = bookings.length;
-    
-    // Calculate total revenue
-    const revenue = bookings.length * (PRICE_PER_SLOT + BOOKING_FEE);
-    totalRevenueValue.textContent = `$${revenue.toFixed(2)}`;
-    
-    // Active users count (excluding admin)
-    const activeUsers = users.filter(user => !user.isAdmin).length;
-    activeUsersValue.textContent = activeUsers;
-}
-
-function filterBookings() {
-    const searchTerm = bookingSearch.value.toLowerCase();
-    
-    // Skip filtering if search term is empty
-    if (!searchTerm) {
-        renderBookingsTable();
-        return;
-    }
-    
-    const filteredBookings = bookings.filter(booking => {
-        const user = users.find(u => u.id === booking.userId) || { name: 'Unknown User' };
-        const court = courts.find(c => c.id === booking.courtId) || { name: 'Unknown Court' };
-        
-        return (
-            user.name.toLowerCase().includes(searchTerm) ||
-            court.name.toLowerCase().includes(searchTerm) ||
-            booking.date.includes(searchTerm) ||
-            booking.time.includes(searchTerm)
-        );
-    });
-    
-    let html = '';
-    
-    filteredBookings.forEach(booking => {
-        const user = users.find(u => u.id === booking.userId) || { name: 'Unknown User' };
-        const court = courts.find(c => c.id === booking.courtId) || { name: 'Unknown Court' };
-        
-        html += `
-            <tr>
-                <td>#${booking.id}</td>
-                <td>${user.name}</td>
-                <td>${court.name}</td>
-                <td>${formatDisplayDate(booking.date)}</td>
-                <td>${formatDisplayTime(booking.time)}</td>
-                <td><span class="status-badge status-confirmed">Confirmed</span></td>
-                <td class="action-buttons">
-                    <button class="btn btn-danger btn-sm" onclick="cancelBooking(${booking.id})">Cancel</button>
-                </td>
-            </tr>
-        `;
-    });
-    
-    bookingsTable.innerHTML = html || '<tr><td colspan="7" style="text-align: center;">No bookings found</td></tr>';
-}
-
-function filterUsers() {
-    const searchTerm = userSearch.value.toLowerCase();
-    
-    // Skip filtering if search term is empty
-    if (!searchTerm) {
-        renderUsersTable();
-        return;
-    }
-    
-    const filteredUsers = users.filter(user => 
-        user.name.toLowerCase().includes(searchTerm) ||
-        user.username.toLowerCase().includes(searchTerm)
-    );
-    
-    let html = '';
-    
-    filteredUsers.forEach(user => {
-        html += `
-            <tr>
-                <td>${user.id}</td>
-                <td>${user.name}</td>
-                <td>${user.username}</td>
-                <td>${user.isAdmin ? 'Admin' : 'Customer'}</td>
-                <td class="action-buttons">
-                    <button class="btn btn-primary btn-sm" onclick="editUser(${user.id})">Edit</button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteUser(${user.id})">Delete</button>
-                </td>
-            </tr>
-        `;
-    });
-    
-    usersTable.innerHTML = html || '<tr><td colspan="5" style="text-align: center;">No users found</td></tr>';
-}
-
-function cancelBooking(bookingId) {
-    if (confirm('Are you sure you want to cancel this booking?')) {
-        // Remove booking from array
-        bookings = bookings.filter(booking => booking.id !== bookingId);
-        
-        // Save to localStorage
-        localStorage.setItem('bookings', JSON.stringify(bookings));
-        
-        // Update UI
-        renderBookingsTable();
-        updateReports();
-        
-        alert('Booking cancelled successfully');
+function editCourt(courtId) {
+    const court = courts.find(c => c.id === courtId);
+    if (court) {
+        const newName = prompt('Enter new court name:', court.name);
+        if (newName && newName.trim()) {
+            court.name = newName.trim();
+            renderCourtsTable();
+        }
     }
 }
 
@@ -787,36 +856,131 @@ function deleteUser(userId) {
     }
 }
 
+function filterBookings() {
+    const searchTerm = bookingSearch.value.toLowerCase();
+    
+    // Skip filtering if search term is empty
+    if (!searchTerm) {
+        renderBookingsTable();
+        return;
+    }
+    
+    const filteredBookings = bookings.filter(booking => {
+        const user = users.find(u => u.id === booking.userId) || { name: 'Unknown User' };
+        const court = courts.find(c => c.id === booking.courtId) || { name: 'Unknown Court' };
+        
+        return (
+            user.name.toLowerCase().includes(searchTerm) ||
+            court.name.toLowerCase().includes(searchTerm) ||
+            booking.date.includes(searchTerm) ||
+            booking.time.includes(searchTerm) ||
+            booking.status.toLowerCase().includes(searchTerm)
+        );
+    });
+    
+    let html = '';
+    
+    filteredBookings.forEach(booking => {
+        const user = users.find(u => u.id === booking.userId) || { name: 'Unknown User' };
+        const court = courts.find(c => c.id === booking.courtId) || { name: 'Unknown Court' };
+        
+        // Status badge class based on booking status
+        let statusClass = '';
+        switch(booking.status) {
+            case 'pending':
+                statusClass = 'status-pending';
+                break;
+            case 'confirmed':
+                statusClass = 'status-confirmed';
+                break;
+            case 'cancelled':
+                statusClass = 'status-cancelled';
+                break;
+            default:
+                statusClass = 'status-pending';
+        }
+        
+        html += `
+            <tr>
+                <td>#${booking.id}</td>
+                <td>${user.name}</td>
+                <td>${court.name}</td>
+                <td>${formatDisplayDate(booking.date)}</td>
+                <td>${formatDisplayTime(booking.time)}</td>
+                <td><span class="status-badge ${statusClass}">${booking.status || 'pending'}</span></td>
+                <td class="action-buttons">
+                    ${booking.status !== 'confirmed' ? 
+                        `<button class="btn btn-success btn-sm" onclick="confirmBookingById(${booking.id})">Confirm</button>` : ''}
+                    ${booking.status !== 'cancelled' ? 
+                        `<button class="btn btn-danger btn-sm" onclick="cancelBookingById(${booking.id})">Cancel</button>` : ''}
+                    <button class="btn btn-primary btn-sm" onclick="editBookingById(${booking.id})">Edit</button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    bookingsTable.innerHTML = html || '<tr><td colspan="7" style="text-align: center;">No bookings found</td></tr>';
+}
+
+function filterUsers() {
+    const searchTerm = userSearch.value.toLowerCase();
+    
+    // Skip filtering if search term is empty
+    if (!searchTerm) {
+        renderUsersTable();
+        return;
+    }
+    
+    const filteredUsers = users.filter(user => 
+        user.name.toLowerCase().includes(searchTerm) ||
+        user.username.toLowerCase().includes(searchTerm)
+    );
+    
+    let html = '';
+    
+    filteredUsers.forEach(user => {
+        html += `
+            <tr>
+                <td>${user.id}</td>
+                <td>${user.name}</td>
+                <td>${user.username}</td>
+                <td>${user.isAdmin ? 'Admin' : 'Customer'}</td>
+                <td class="action-buttons">
+                    <button class="btn btn-primary btn-sm" onclick="editUser(${user.id})">Edit</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteUser(${user.id})">Delete</button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    usersTable.innerHTML = html || '<tr><td colspan="5" style="text-align: center;">No users found</td></tr>';
+}
+
 function saveSettings(e) {
     e.preventDefault();
-    alert('Settings saved successfully');
+    
+    // Get settings values
+    const courtPrice = document.getElementById('courtPrice').value;
+    const bookingFee = document.getElementById('bookingFee').value;
+    const rushHourPrice = document.getElementById('rushHourPrice').value;
+    
+    // Validate input
+    if (isNaN(courtPrice) || isNaN(bookingFee) || isNaN(rushHourPrice)) {
+        alert('Please enter valid numbers for prices');
+        return;
+    }
+    
+    // Save to localStorage
+    const settings = {
+        courtPrice: parseFloat(courtPrice),
+        bookingFee: parseFloat(bookingFee),
+        rushHourPrice: parseFloat(rushHourPrice)
+    };
+    
+    localStorage.setItem('adminSettings', JSON.stringify(settings));
+    
+    // Update UI constants
+    // Don't update PRICE_PER_SLOT and BOOKING_FEE here as they're used in calculations
+    
+    alert('Settings saved successfully!');
 }
-
-// Helper functions
-function formatDisplayDate(dateStr) {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-}
-
-function formatDisplayTime(timeStr) {
-    // Convert 24-hour format to 12-hour format
-    const [hour, minute] = timeStr.split(':');
-    const hourNum = parseInt(hour);
-    const ampm = hourNum >= 12 ? 'PM' : 'AM';
-    const hour12 = hourNum % 12 || 12;
-    return `${hour12}:${minute} ${ampm}`;
-}
-
-// Initialize the dashboard when the DOM is fully loaded
-document.addEventListener('DOMContentLoaded', initDashboard);
-
-// Define functions used in HTML event handlers
-window.cancelBookingById = cancelBookingById;
-window.confirmBookingById = confirmBookingById;
-window.editBookingById = editBookingById;
-window.toggleCourtStatus = toggleCourtStatus;
-window.editUser = editUser;
-window.deleteUser = deleteUser;
-window.markNotificationAsRead = markNotificationAsRead;
-window.deleteNotification = deleteNotification;
-window.viewBookingDetails = viewBookingDetails;

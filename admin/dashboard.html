@@ -305,29 +305,145 @@
                 </div>
                 
                 <!-- Settings Section -->
-                <div id="settings-section" class="dashboard-section" style="display: none;">
-                    <div class="section-header">
-                        <h2 class="section-title">Settings</h2>
-                    </div>
-                    
-                    <form id="settingsForm">
-                        <div class="form-group">
-                            <label for="courtPrice">Price per 30 minutes</label>
-                            <input type="number" id="courtPrice" min="0" step="0.01" value="15.00">
-                        </div>
-                        <div class="form-group">
-                            <label for="bookingFee">Booking Fee</label>
-                            <input type="number" id="bookingFee" min="0" step="0.01" value="2.00">
-                        </div>
-                        <div class="form-group">
-                            <button type="submit" class="btn btn-primary">Save Settings</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+<div id="settings-section" class="dashboard-section" style="display: none;">
+    <div class="section-header">
+        <h2 class="section-title">Settings</h2>
     </div>
     
-    <script src="../js/admin.js"></script>
-</body>
-</html>
+    <form id="settingsForm">
+        <div class="form-group">
+            <label for="courtPrice">Normal Hour Price per 30 minutes</label>
+            <input type="number" id="courtPrice" min="0" step="0.01" value="15.00">
+        </div>
+        <div class="form-group">
+            <label for="rushHourPrice">Rush Hour Price per 30 minutes</label>
+            <input type="number" id="rushHourPrice" min="0" step="0.01" value="20.00">
+        </div>
+        <div class="form-group">
+            <label for="bookingFee">Booking Fee</label>
+            <input type="number" id="bookingFee" min="0" step="0.01" value="2.00">
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Save Settings</button>
+        </div>
+    </form>
+    
+    <div class="section-header" style="margin-top: 30px;">
+        <h2 class="section-title">Rush Hour Settings</h2>
+    </div>
+    
+    <form id="rushHourSettingsForm">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="weekdayRushStart">Weekday Rush Hour Start</label>
+                <select id="weekdayRushStart">
+                    <option value="12">12 PM</option>
+                    <option value="13">1 PM</option>
+                    <option value="14">2 PM</option>
+                    <option value="15">3 PM</option>
+                    <option value="16">4 PM</option>
+                    <option value="17" selected>5 PM</option>
+                    <option value="18">6 PM</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="weekdayRushEnd">Weekday Rush Hour End</label>
+                <select id="weekdayRushEnd">
+                    <option value="20">8 PM</option>
+                    <option value="21">9 PM</option>
+                    <option value="22">10 PM</option>
+                    <option value="23" selected>11 PM</option>
+                    <option value="24">12 AM</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="weekendRushStart">Weekend Rush Hour Start</label>
+                <select id="weekendRushStart">
+                    <option value="7">7 AM</option>
+                    <option value="8">8 AM</option>
+                    <option value="9" selected>9 AM</option>
+                    <option value="10">10 AM</option>
+                    <option value="11">11 AM</option>
+                    <option value="12">12 PM</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="weekendRushEnd">Weekend Rush Hour End</label>
+                <select id="weekendRushEnd">
+                    <option value="20">8 PM</option>
+                    <option value="21">9 PM</option>
+                    <option value="22">10 PM</option>
+                    <option value="23" selected>11 PM</option>
+                    <option value="24">12 AM</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Save Rush Hour Settings</button>
+        </div>
+    </form>
+</div>
+
+<script>
+// Add this script to handle the rush hour settings form
+document.addEventListener('DOMContentLoaded', function() {
+    // Load saved rush hour settings
+    const rushHourSettings = JSON.parse(localStorage.getItem('rushHourSettings')) || {
+        weekdayStart: 17, // 5 PM
+        weekdayEnd: 23,   // 11 PM
+        weekendStart: 9,  // 9 AM
+        weekendEnd: 23    // 11 PM
+    };
+    
+    // Set form values from saved settings
+    const weekdayRushStart = document.getElementById('weekdayRushStart');
+    const weekdayRushEnd = document.getElementById('weekdayRushEnd');
+    const weekendRushStart = document.getElementById('weekendRushStart');
+    const weekendRushEnd = document.getElementById('weekendRushEnd');
+    
+    if (weekdayRushStart) weekdayRushStart.value = rushHourSettings.weekdayStart;
+    if (weekdayRushEnd) weekdayRushEnd.value = rushHourSettings.weekdayEnd;
+    if (weekendRushStart) weekendRushStart.value = rushHourSettings.weekendStart;
+    if (weekendRushEnd) weekendRushEnd.value = rushHourSettings.weekendEnd;
+    
+    // Handle rush hour settings form submission
+    const rushHourSettingsForm = document.getElementById('rushHourSettingsForm');
+    if (rushHourSettingsForm) {
+        rushHourSettingsForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const weekdayStart = parseInt(weekdayRushStart.value);
+            const weekdayEnd = parseInt(weekdayRushEnd.value);
+            const weekendStart = parseInt(weekendRushStart.value);
+            const weekendEnd = parseInt(weekendRushEnd.value);
+            
+            // Validate settings
+            if (weekdayStart >= weekdayEnd) {
+                alert('Weekday rush hour start time must be before end time');
+                return;
+            }
+            
+            if (weekendStart >= weekendEnd) {
+                alert('Weekend rush hour start time must be before end time');
+                return;
+            }
+            
+            // Save settings
+            const settings = {
+                weekdayStart,
+                weekdayEnd,
+                weekendStart,
+                weekendEnd
+            };
+            
+            localStorage.setItem('rushHourSettings', JSON.stringify(settings));
+            
+            alert('Rush hour settings saved successfully!');
+        });
+    }
+});

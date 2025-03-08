@@ -44,7 +44,7 @@
         
         .pricing-cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(2, 1fr);
             gap: 30px;
             margin-bottom: 40px;
         }
@@ -218,10 +218,80 @@
             margin-top: 0;
         }
         
+        .admin-edit-price {
+            background-color: rgba(0,0,0,0.05);
+            border-radius: 5px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none; /* Hidden by default, shown for admin */
+        }
+        
+        .admin-edit-price h3 {
+            margin-top: 0;
+            color: var(--secondary-color);
+        }
+        
+        .admin-price-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .admin-price-form .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .admin-price-form label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .admin-price-form input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .admin-price-form button {
+            grid-column: span 2;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .admin-price-form button:hover {
+            background-color: #028f74;
+        }
+        
         @media (max-width: 768px) {
             .pricing-cards {
                 grid-template-columns: 1fr;
             }
+            
+            .admin-price-form {
+                grid-template-columns: 1fr;
+            }
+            
+            .admin-price-form button {
+                grid-column: 1;
+            }
+        }
+        
+        /* Add badminton icon to logo */
+        .logo:before {
+            content: "🏸 ";
+            font-size: 1.2em;
+        }
+        
+        /* Add badminton icon to page title */
+        .pricing-header h1:before {
+            content: "🏸 ";
         }
     </style>
 </head>
@@ -251,9 +321,9 @@
             <div class="pricing-card normal-hour">
                 <div class="pricing-card-header">
                     <h2>Normal Hours</h2>
-                    <div class="pricing-price">$15</div>
+                    <div class="pricing-price">$<span id="normalHourPrice">15</span></div>
                     <div class="pricing-period">per 30 minutes</div>
-                    <div class="pricing-time-badge">7AM - 6PM Weekdays</div>
+                    <div class="pricing-time-badge">7AM - 5PM Weekdays</div>
                 </div>
                 <div class="pricing-card-body">
                     <ul class="pricing-features">
@@ -271,9 +341,9 @@
             <div class="pricing-card rush-hour">
                 <div class="pricing-card-header">
                     <h2>Rush Hours</h2>
-                    <div class="pricing-price">$20</div>
+                    <div class="pricing-price">$<span id="rushHourPrice">20</span></div>
                     <div class="pricing-period">per 30 minutes</div>
-                    <div class="pricing-time-badge">6PM - 9PM Weekdays & 9AM - 9PM Weekends</div>
+                    <div class="pricing-time-badge">5PM - 11PM Weekdays & 9AM - 11PM Weekends</div>
                 </div>
                 <div class="pricing-card-body">
                     <ul class="pricing-features">
@@ -286,37 +356,36 @@
                     <a href="index.html" class="pricing-btn">Book Now</a>
                 </div>
             </div>
-            
-            <!-- Membership Card -->
-            <div class="pricing-card">
-                <div class="pricing-card-header">
-                    <h2>Membership</h2>
-                    <div class="pricing-price">$120</div>
-                    <div class="pricing-period">per month</div>
+        </div>
+        
+        <!-- Admin Price Edit Section (only visible to admin) -->
+        <div class="admin-edit-price" id="adminPriceEdit">
+            <h3>Admin Price Settings</h3>
+            <form id="adminPriceForm" class="admin-price-form">
+                <div class="form-group">
+                    <label for="editNormalPrice">Normal Hour Price ($)</label>
+                    <input type="number" id="editNormalPrice" min="1" step="0.01" value="15">
                 </div>
-                <div class="pricing-card-body">
-                    <ul class="pricing-features">
-                        <li><i class="fas fa-check"></i> 20 hours of play time</li>
-                        <li><i class="fas fa-check"></i> Access to all courts</li>
-                        <li><i class="fas fa-check"></i> Priority booking</li>
-                        <li><i class="fas fa-check"></i> 10% discount on rush hours</li>
-                        <li><i class="fas fa-check"></i> Free equipment rental</li>
-                    </ul>
-                    <a href="contact.html" class="pricing-btn">Contact Us</a>
+                <div class="form-group">
+                    <label for="editRushPrice">Rush Hour Price ($)</label>
+                    <input type="number" id="editRushPrice" min="1" step="0.01" value="20">
                 </div>
-            </div>
+                <div class="form-group">
+                    <label for="editBookingFee">Booking Fee ($)</label>
+                    <input type="number" id="editBookingFee" min="0" step="0.01" value="2">
+                </div>
+                <button type="submit">Save Price Settings</button>
+            </form>
         </div>
         
         <div class="pricing-notes">
             <h3>Additional Information</h3>
             <ul>
-                <li><strong>Rush Hours:</strong> 6PM - 9PM on weekdays and 9AM - 9PM on weekends have higher rates due to increased demand.</li>
+                <li><strong>Rush Hours:</strong> 5PM - 11PM on weekdays and 9AM - 11PM on weekends have higher rates due to increased demand.</li>
                 <li><strong>Normal Hours:</strong> All other times outside rush hours enjoy our standard rate.</li>
                 <li>All bookings require confirmation via phone or payment within 1 hour.</li>
                 <li>24-hour cancellation policy applies to all bookings.</li>
                 <li>Group booking discounts available for 4 or more courts.</li>
-                <li>Membership rates are subject to a minimum 3-month commitment.</li>
-                <li>Rates may be adjusted by admin staff according to seasonal demand.</li>
             </ul>
         </div>
     </div>
@@ -326,6 +395,13 @@
             // Login button functionality
             const loginBtn = document.getElementById('loginBtn');
             const authContainer = document.getElementById('authContainer');
+            const adminPriceEdit = document.getElementById('adminPriceEdit');
+            const adminPriceForm = document.getElementById('adminPriceForm');
+            const normalHourPriceDisplay = document.getElementById('normalHourPrice');
+            const rushHourPriceDisplay = document.getElementById('rushHourPrice');
+            
+            // Load settings from localStorage
+            loadPriceSettings();
             
             // Check if user is logged in
             const storedUser = localStorage.getItem('currentUser');
@@ -343,6 +419,11 @@
                         </a>
                         <button class="btn btn-danger" id="logoutBtn">Logout</button>
                     `;
+                    
+                    // Show admin price edit section
+                    if (adminPriceEdit) {
+                        adminPriceEdit.style.display = 'block';
+                    }
                 } else {
                     authContainer.innerHTML = `
                         <div class="user-info">
@@ -357,9 +438,71 @@
                     window.location.reload();
                 });
             } else {
-                loginBtn.addEventListener('click', function() {
-                    window.location.href = 'index.html';
+                if (loginBtn) {
+                    loginBtn.addEventListener('click', function() {
+                        window.location.href = 'index.html';
+                    });
+                }
+            }
+            
+            // Price edit form submission
+            if (adminPriceForm) {
+                adminPriceForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const normalPrice = parseFloat(document.getElementById('editNormalPrice').value);
+                    const rushPrice = parseFloat(document.getElementById('editRushPrice').value);
+                    const bookingFee = parseFloat(document.getElementById('editBookingFee').value);
+                    
+                    // Validate inputs
+                    if (isNaN(normalPrice) || isNaN(rushPrice) || isNaN(bookingFee)) {
+                        alert('Please enter valid numbers for all prices');
+                        return;
+                    }
+                    
+                    // Save settings
+                    const settings = {
+                        normalHourPrice: normalPrice,
+                        rushHourPrice: rushPrice,
+                        bookingFee: bookingFee
+                    };
+                    
+                    localStorage.setItem('pricingSettings', JSON.stringify(settings));
+                    
+                    // Update displayed prices
+                    if (normalHourPriceDisplay) normalHourPriceDisplay.textContent = normalPrice;
+                    if (rushHourPriceDisplay) rushHourPriceDisplay.textContent = rushPrice;
+                    
+                    alert('Pricing settings saved successfully!');
                 });
+            }
+            
+            function loadPriceSettings() {
+                const storedSettings = localStorage.getItem('pricingSettings');
+                if (storedSettings) {
+                    const settings = JSON.parse(storedSettings);
+                    
+                    // Update form values
+                    const normalPriceInput = document.getElementById('editNormalPrice');
+                    const rushPriceInput = document.getElementById('editRushPrice');
+                    const bookingFeeInput = document.getElementById('editBookingFee');
+                    
+                    if (normalPriceInput && settings.normalHourPrice) 
+                        normalPriceInput.value = settings.normalHourPrice;
+                    
+                    if (rushPriceInput && settings.rushHourPrice) 
+                        rushPriceInput.value = settings.rushHourPrice;
+                    
+                    if (bookingFeeInput && settings.bookingFee) 
+                        bookingFeeInput.value = settings.bookingFee;
+                    
+                    // Update displayed prices
+                    if (normalHourPriceDisplay && settings.normalHourPrice) 
+                        normalHourPriceDisplay.textContent = settings.normalHourPrice;
+                    
+                    if (rushHourPriceDisplay && settings.rushHourPrice) 
+                        rushHourPriceDisplay.textContent = settings.rushHourPrice;
+                }
             }
         });
     </script>
