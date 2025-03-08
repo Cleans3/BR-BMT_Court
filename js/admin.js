@@ -1,258 +1,3 @@
-// DOM Elements - minimized for essential functionality
-const authContainer = document.getElementById('authContainer');
-const bookingsTable = document.getElementById('bookingsTable');
-const courtsTable = document.getElementById('courtsTable');
-const usersTable = document.getElementById('usersTable');
-const totalBookingsValue = document.getElementById('totalBookingsValue');
-const totalRevenueValue = document.getElementById('totalRevenueValue');
-const activeUsersValue = document.getElementById('activeUsersValue');
-const dashboardSections = document.querySelectorAll('.dashboard-section');
-
-// App State
-let currentUser = null;
-let users = [];
-let bookings = [];
-let courts = [];
-let notifications = [];
-
-// Constants
-const PRICE_PER_SLOT = 15.00;
-const BOOKING_FEE = 2.00;
-
-// Main initialization function
-function initDashboard() {
-    // Load the current user
-    const storedUser = localStorage.getItem('currentUser');
-    if (storedUser) {
-        currentUser = JSON.parse(storedUser);
-    }
-    
-    // Basic admin check
-    if (!currentUser || !(currentUser.isAdmin === true || currentUser.username === 'admint')) {
-        alert('Access denied. Admins only.');
-        window.location.href = '../index.html';
-        return;
-    }
-    
-    // Update auth display
-    updateAuthDisplay();
-    
-    // Load data
-    loadData();
-    
-    // Render tables
-    renderAllTables();
-    
-    // Show the default section (bookings)
-    showSection('bookings');
-    
-    // Set up navigation - CRITICAL PART
-    setupNavigation();
-}
-
-// Load data from localStorage
-function loadData() {
-    // Load users
-    const storedUsers = localStorage.getItem('users');
-    if (storedUsers) {
-        users = JSON.parse(storedUsers);
-    }
-    
-    // Load bookings
-    const storedBookings = localStorage.getItem('bookings');
-    if (storedBookings) {
-        bookings = JSON.parse(storedBookings);
-    }
-    
-    // Load courts (or use defaults)
-    courts = [
-        { id: 1, name: "Court 1", isActive: true },
-        { id: 2, name: "Court 2", isActive: true },
-        { id: 3, name: "Court 3", isActive: true },
-        { id: 4, name: "Court 4", isActive: true },
-        { id: 5, name: "Court 5", isActive: true },
-        { id: 6, name: "Court 6", isActive: true }
-    ];
-    
-    // Load notifications
-    const storedNotifications = localStorage.getItem('adminNotifications');
-    if (storedNotifications) {
-        notifications = JSON.parse(storedNotifications);
-    }
-}
-
-// Update auth display
-function updateAuthDisplay() {
-    if (authContainer) {
-        authContainer.innerHTML = `
-            <div class="user-info">
-                <span class="user-name">Admin: ${currentUser.name}</span>
-            </div>
-            <a href="../index.html" class="btn btn-primary">Back to Site</a>
-            <button class="btn btn-danger" id="logoutBtn">Logout</button>
-        `;
-        document.getElementById('logoutBtn').addEventListener('click', function() {
-            localStorage.removeItem('currentUser');
-            window.location.href = '../index.html';
-        });
-    }
-}
-
-// Critical function to set up navigation
-function setupNavigation() {
-    const navLinks = document.querySelectorAll('.sidebar-nav a');
-    
-    navLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            // Get the section ID
-            const sectionId = this.getAttribute('data-section');
-            
-            // Show that section
-            showSection(sectionId);
-            
-            // Update active link
-            navLinks.forEach(navLink => {
-                navLink.classList.remove('active');
-            });
-            this.classList.add('active');
-        });
-    });
-    
-    // Set up notification toggle
-    const notificationToggle = document.getElementById('notificationToggle');
-    if (notificationToggle) {
-        notificationToggle.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const dropdown = document.getElementById('notificationDropdown');
-            if (dropdown) {
-                dropdown.classList.toggle('show');
-            }
-        });
-    }
-    
-    // Add court button
-    const addCourtBtn = document.getElementById('addCourtBtn');
-    if (addCourtBtn) {
-        addCourtBtn.addEventListener('click', function() {
-            const courtName = prompt('Enter court name:');
-            if (courtName && courtName.trim()) {
-                const newId = courts.length > 0 ? Math.max(...courts.map(c => c.id)) + 1 : 1;
-                courts.push({
-                    id: newId,
-                    name: courtName.trim(),
-                    isActive: true
-                });
-                renderCourtsTable();
-                alert('Court added successfully!');
-            }
-        });
-    }
-}
-
-// Show a specific section
-function showSection(sectionId) {
-    console.log("Showing section:", sectionId);
-    
-    // Hide all sections
-    dashboardSections.forEach(section => {
-        section.style.display = 'none';
-    });
-    
-    // Show the requested section
-    const section = document.getElementById(sectionId + '-section');
-    if (section) {
-        section.style.display = 'block';
-    } else {
-        console.error("Section not found:", sectionId + '-section');
-    }
-}
-
-// Render tables
-function renderAllTables() {
-    renderBookingsTable();
-    renderCourtsTable();
-    renderUsersTable();
-}
-
-function renderBookingsTable() {
-    if (!bookingsTable) return;
-    
-    let html = '';
-    
-    bookings.forEach(booking => {
-        const user = users.find(u => u.id === booking.userId) || { name: booking.userName || 'Unknown User' };
-        
-        html += `
-            <tr>
-                <td>#${booking.id}</td>
-                <td>${user.name}</td>
-                <td>${booking.courtName || 'Court ' + booking.courtId}</td>
-                <td>${booking.date || 'Unknown'}</td>
-                <td>${booking.time || 'Unknown'}</td>
-                <td><span class="status-badge status-${booking.status || 'pending'}">${booking.status || 'pending'}</span></td>
-                <td class="action-buttons">
-                    <button class="btn btn-success btn-sm">Confirm</button>
-                    <button class="btn btn-danger btn-sm">Cancel</button>
-                    <button class="btn btn-primary btn-sm">Edit</button>
-                </td>
-            </tr>
-        `;
-    });
-    
-    bookingsTable.innerHTML = html || '<tr><td colspan="7" style="text-align: center;">No bookings found</td></tr>';
-}
-
-function renderCourtsTable() {
-    if (!courtsTable) return;
-    
-    let html = '';
-    
-    courts.forEach(court => {
-        html += `
-            <tr>
-                <td>${court.id}</td>
-                <td>${court.name}</td>
-                <td>${court.isActive ? 'Active' : 'Inactive'}</td>
-                <td class="action-buttons">
-                    <button class="btn btn-primary btn-sm">Edit</button>
-                    <button class="btn ${court.isActive ? 'btn-danger' : 'btn-success'} btn-sm">
-                        ${court.isActive ? 'Deactivate' : 'Activate'}
-                    </button>
-                </td>
-            </tr>
-        `;
-    });
-    
-    courtsTable.innerHTML = html || '<tr><td colspan="4" style="text-align: center;">No courts found</td></tr>';
-}
-
-function renderUsersTable() {
-    if (!usersTable) return;
-    
-    let html = '';
-    
-    users.forEach(user => {
-        html += `
-            <tr>
-                <td>${user.id}</td>
-                <td>${user.name}</td>
-                <td>${user.username}</td>
-                <td>${user.isAdmin ? 'Admin' : 'Customer'}</td>
-                <td class="action-buttons">
-                    <button class="btn btn-primary btn-sm">Edit</button>
-                    <button class="btn btn-danger btn-sm">Delete</button>
-                </td>
-            </tr>
-        `;
-    });
-    
-    usersTable.innerHTML = html || '<tr><td colspan="5" style="text-align: center;">No users found</td></tr>';
-}
-
-// Start the dashboard when DOM is loaded
-document.addEventListener('DOMContentLoaded', initDashboard);
 // DOM Elements
 const authContainer = document.getElementById('authContainer');
 const bookingsTable = document.getElementById('bookingsTable');
@@ -284,6 +29,7 @@ let notifications = [];
 
 // Initialize the dashboard
 function initDashboard() {
+    console.log("Dashboard initialization started");
     loadUserFromStorage();
     
     // Force admin flag for 'admint' user
@@ -304,6 +50,7 @@ function initDashboard() {
         return;
     }
     
+    console.log("User authentication passed, continuing initialization");
     updateAuthDisplay();
     loadNotifications();
     renderAllTables();
@@ -315,6 +62,7 @@ function initDashboard() {
     
     // Show the default section (bookings)
     showSection('bookings');
+    console.log("Dashboard initialization completed");
 }
 
 // Very strict admin check
@@ -336,25 +84,30 @@ function loadUserFromStorage() {
             currentUser.isAdmin = true;
         }
     }
+    console.log("User loaded from storage:", currentUser ? `${currentUser.name} (${currentUser.isAdmin ? 'Admin' : 'User'})` : 'None');
 }
 
 function loadDataFromStorage() {
+    console.log("Loading data from storage");
     // Load users
     const storedUsers = localStorage.getItem('users');
     if (storedUsers) {
         users = JSON.parse(storedUsers);
+        console.log(`Loaded ${users.length} users from storage`);
     } else {
         users = [
             { id: 1, username: 'admint', password: 'minhbeo', name: 'Admin User', isAdmin: true },
             { id: 2, username: 'user1', password: 'password1', name: 'John Doe', isAdmin: false }
         ];
         localStorage.setItem('users', JSON.stringify(users));
+        console.log("Created default users in storage");
     }
     
     // Load bookings
     const storedBookings = localStorage.getItem('bookings');
     if (storedBookings) {
         bookings = JSON.parse(storedBookings);
+        console.log(`Loaded ${bookings.length} bookings from storage`);
     } else {
         bookings = [
             { id: 1, userId: 2, userName: 'John Doe', courtId: 1, courtName: 'Court 1', date: '2025-03-04', time: '10:00', status: 'confirmed', createdAt: '2025-03-01T10:00:00Z' },
@@ -363,6 +116,7 @@ function loadDataFromStorage() {
             { id: 4, userId: 1, userName: 'Admin User', courtId: 3, courtName: 'Court 3', date: '2025-03-05', time: '18:30', status: 'confirmed', createdAt: '2025-03-01T11:00:00Z' }
         ];
         localStorage.setItem('bookings', JSON.stringify(bookings));
+        console.log("Created default bookings in storage");
     }
     
     // Load or initialize courts
@@ -374,15 +128,19 @@ function loadDataFromStorage() {
         { id: 5, name: "Court 5", isActive: true },
         { id: 6, name: "Court 6", isActive: true }
     ];
+    console.log(`Initialized ${courts.length} courts`);
 }
 
 function loadNotifications() {
+    console.log("Loading notifications");
     // Load notifications from localStorage
     const storedNotifications = localStorage.getItem('adminNotifications');
     if (storedNotifications) {
         notifications = JSON.parse(storedNotifications);
+        console.log(`Loaded ${notifications.length} notifications from storage`);
     } else {
         notifications = [];
+        console.log("No notifications found in storage");
     }
     
     // Update notification count
@@ -394,6 +152,7 @@ function loadNotifications() {
 
 function updateNotificationCount() {
     const unreadCount = notifications.filter(n => !n.isRead).length;
+    console.log(`Unread notifications: ${unreadCount}`);
     
     // Update count display
     if (notificationCount) {
@@ -411,7 +170,10 @@ function updateNotificationCount() {
 }
 
 function renderNotifications() {
-    if (!notificationsList) return;
+    if (!notificationsList) {
+        console.log("Notification list element not found");
+        return;
+    }
     
     let html = '';
     
@@ -462,9 +224,15 @@ function renderNotifications() {
     }
     
     notificationsList.innerHTML = html;
+    console.log("Notifications rendered in dropdown");
 }
 
 function updateAuthDisplay() {
+    if (!authContainer) {
+        console.log("Auth container element not found");
+        return;
+    }
+    
     if (currentUser) {
         authContainer.innerHTML = `
             <div class="user-info">
@@ -474,10 +242,12 @@ function updateAuthDisplay() {
             <button class="btn btn-danger" id="logoutBtn">Logout</button>
         `;
         document.getElementById('logoutBtn').addEventListener('click', logout);
+        console.log("Auth display updated for logged-in admin");
     } else {
         authContainer.innerHTML = `
             <button class="btn btn-primary login-btn" id="loginBtn">Login</button>
         `;
+        console.log("Auth display updated for guest");
     }
 }
 
@@ -488,6 +258,7 @@ function logout() {
 }
 
 function setupEventListeners() {
+    console.log("Setting up event listeners");
     // Search functionality
     if (bookingSearch) {
         bookingSearch.addEventListener('input', filterBookings);
@@ -552,9 +323,12 @@ function setupEventListeners() {
             dropdown.classList.remove('show');
         }
     });
+    
+    console.log("Event listeners setup completed");
 }
 
 function fixSidebarNavigation() {
+    console.log("Setting up sidebar navigation");
     const navLinks = document.querySelectorAll('.sidebar-nav a');
     
     navLinks.forEach(link => {
@@ -563,6 +337,7 @@ function fixSidebarNavigation() {
             
             // Get the section to show
             const sectionId = this.getAttribute('data-section');
+            console.log(`Navigation requested to section: ${sectionId}`);
             
             // Hide all sections
             const sections = document.querySelectorAll('.dashboard-section');
@@ -574,6 +349,9 @@ function fixSidebarNavigation() {
             const selectedSection = document.getElementById(sectionId + '-section');
             if (selectedSection) {
                 selectedSection.style.display = 'block';
+                console.log(`Section ${sectionId} is now displayed`);
+            } else {
+                console.error(`Section not found: ${sectionId}-section`);
             }
             
             // Update active class
@@ -583,9 +361,12 @@ function fixSidebarNavigation() {
             this.classList.add('active');
         });
     });
+    
+    console.log("Sidebar navigation setup completed");
 }
 
 function loadSavedPriceSettings() {
+    console.log("Loading pricing settings");
     const storedSettings = localStorage.getItem('pricingSettings');
     if (storedSettings) {
         const settings = JSON.parse(storedSettings);
@@ -605,6 +386,10 @@ function loadSavedPriceSettings() {
         if (bookingFeeInput && settings.bookingFee) {
             bookingFeeInput.value = settings.bookingFee;
         }
+        
+        console.log("Pricing settings loaded from storage");
+    } else {
+        console.log("No saved pricing settings found");
     }
 }
 
@@ -635,6 +420,7 @@ function setupSettingsForm() {
             
             alert('Settings saved successfully!');
         });
+        console.log("Settings form initialized");
     }
     
     // Rush hour settings form
@@ -671,6 +457,7 @@ function setupSettingsForm() {
             
             alert('Rush hour settings saved successfully!');
         });
+        console.log("Rush hour settings form initialized");
     }
 }
 
@@ -724,6 +511,7 @@ function filterNotifications(filter) {
 }
 
 function showSection(sectionId) {
+    console.log(`Showing section: ${sectionId}`);
     // Hide all sections
     dashboardSections.forEach(section => {
         section.style.display = 'none';
@@ -733,6 +521,9 @@ function showSection(sectionId) {
     const sectionElement = document.getElementById(`${sectionId}-section`);
     if (sectionElement) {
         sectionElement.style.display = 'block';
+        console.log(`Section ${sectionId} is now displayed`);
+    } else {
+        console.error(`Section element not found: ${sectionId}-section`);
     }
 }
 
@@ -792,6 +583,7 @@ function showAllNotifications(event) {
 }
 
 function renderAllTables() {
+    console.log("Rendering all tables");
     renderBookingsTable();
     renderCourtsTable();
     renderUsersTable();
@@ -799,56 +591,8 @@ function renderAllTables() {
 }
 
 function renderAllNotificationsList() {
-    if (!allNotificationsList) return;
-    
-    let html = '';
-    
-    if (notifications.length === 0) {
-        html = '<div class="empty-state">No notifications</div>';
-    } else {
-        // Sort by creation date (newest first)
-        const sortedNotifications = [...notifications].sort((a, b) => {
-            return new Date(b.createdAt) - new Date(a.createdAt);
-        });
-        
-        sortedNotifications.forEach(notification => {
-            const isUnread = !notification.isRead ? 'unread' : '';
-            const isGuest = notification.isGuest ? 'guest-notification' : '';
-            const timeAgo = getTimeAgo(new Date(notification.createdAt));
-            const formattedDate = new Date(notification.createdAt).toLocaleString();
-            
-            html += `
-                <div class="notification-item-large ${isUnread} ${isGuest}" data-id="${notification.id}">
-                    <div class="notification-header">
-                        <div class="notification-title-container">
-                            <span class="notification-title">${notification.title}</span>
-                            ${!notification.isRead ? '<span class="unread-badge">Unread</span>' : ''}
-                            ${notification.isGuest ? '<span class="guest-badge">Guest</span>' : ''}
-                        </div>
-                        <span class="notification-time" title="${formattedDate}">${timeAgo}</span>
-                    </div>
-                    <div class="notification-content">${notification.message}</div>
-                    ${notification.detailedMessage ? 
-                        `<div class="notification-details">${notification.detailedMessage}</div>` : ''}
-                    <div class="notification-actions">
-                        <button class="btn btn-sm btn-primary" onclick="markNotificationAsRead(${notification.id})">
-                            Mark as ${notification.isRead ? 'unread' : 'read'}
-                        </button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteNotification(${notification.id})">
-                            Delete
-                        </button>
-                        ${notification.type === 'new_booking' ? 
-                            `<button class="btn btn-sm btn-success" onclick="viewBookingDetails(${notification.bookingIds[0]})">
-                                View Booking
-                            </button>` 
-                            : ''}
-                    </div>
-                </div>
-            `;
-        });
-    }
-    
-    allNotificationsList.innerHTML = html;
+    if (!allNotificationsList) {
+        console.log("All notifications list rendered");
 }
 
 function deleteNotification(notificationId) {
@@ -898,8 +642,12 @@ function viewBookingDetails(bookingId) {
 }
 
 function renderBookingsTable() {
-    if (!bookingsTable) return;
+    if (!bookingsTable) {
+        console.error("Bookings table element not found");
+        return;
+    }
     
+    console.log("Rendering bookings table with", bookings.length, "bookings");
     let html = '';
     
     bookings.forEach(booking => {
@@ -942,11 +690,16 @@ function renderBookingsTable() {
     });
     
     bookingsTable.innerHTML = html || '<tr><td colspan="7" style="text-align: center;">No bookings found</td></tr>';
+    console.log("Bookings table rendered successfully");
 }
 
 function renderCourtsTable() {
-    if (!courtsTable) return;
+    if (!courtsTable) {
+        console.error("Courts table element not found");
+        return;
+    }
     
+    console.log("Rendering courts table");
     let html = '';
     
     courts.forEach(court => {
@@ -965,12 +718,17 @@ function renderCourtsTable() {
         `;
     });
     
-    courtsTable.innerHTML = html;
+    courtsTable.innerHTML = html || '<tr><td colspan="4" style="text-align: center;">No courts found</td></tr>';
+    console.log("Courts table rendered successfully");
 }
 
 function renderUsersTable() {
-    if (!usersTable) return;
+    if (!usersTable) {
+        console.error("Users table element not found");
+        return;
+    }
     
+    console.log("Rendering users table");
     let html = '';
     
     users.forEach(user => {
@@ -988,22 +746,29 @@ function renderUsersTable() {
         `;
     });
     
-    usersTable.innerHTML = html;
+    usersTable.innerHTML = html || '<tr><td colspan="5" style="text-align: center;">No users found</td></tr>';
+    console.log("Users table rendered successfully");
 }
 
 function updateReports() {
-    if (!totalBookingsValue || !totalRevenueValue || !activeUsersValue) return;
+    if (!totalBookingsValue || !totalRevenueValue || !activeUsersValue) {
+        console.error("One or more report value elements not found");
+        return;
+    }
     
+    console.log("Updating dashboard reports");
     // Total bookings count
     totalBookingsValue.textContent = bookings.length;
     
     // Calculate total revenue
     const revenue = bookings.length * (PRICE_PER_SLOT + BOOKING_FEE);
-    totalRevenueValue.textContent = `$${revenue.toFixed(2)}`;
+    totalRevenueValue.textContent = `${revenue.toFixed(2)}`;
     
     // Active users count (excluding admin)
     const activeUsers = users.filter(user => !user.isAdmin).length;
     activeUsersValue.textContent = activeUsers;
+    
+    console.log("Dashboard reports updated");
 }
 
 function confirmBookingById(bookingId) {
@@ -1142,7 +907,7 @@ function filterBookings() {
             court.name.toLowerCase().includes(searchTerm) ||
             booking.date.includes(searchTerm) ||
             booking.time.includes(searchTerm) ||
-            booking.status.toLowerCase().includes(searchTerm)
+            (booking.status && booking.status.toLowerCase().includes(searchTerm))
         );
     });
     
@@ -1293,4 +1058,56 @@ function getTimeAgo(date) {
 }
 
 // Initialize the dashboard when DOM is loaded
-document.addEventListener('DOMContentLoaded', initDashboard);
+document.addEventListener('DOMContentLoaded', initDashboard); element not found");
+        return;
+    }
+    
+    let html = '';
+    
+    if (notifications.length === 0) {
+        html = '<div class="empty-state">No notifications</div>';
+    } else {
+        // Sort by creation date (newest first)
+        const sortedNotifications = [...notifications].sort((a, b) => {
+            return new Date(b.createdAt) - new Date(a.createdAt);
+        });
+        
+        sortedNotifications.forEach(notification => {
+            const isUnread = !notification.isRead ? 'unread' : '';
+            const isGuest = notification.isGuest ? 'guest-notification' : '';
+            const timeAgo = getTimeAgo(new Date(notification.createdAt));
+            const formattedDate = new Date(notification.createdAt).toLocaleString();
+            
+            html += `
+                <div class="notification-item-large ${isUnread} ${isGuest}" data-id="${notification.id}">
+                    <div class="notification-header">
+                        <div class="notification-title-container">
+                            <span class="notification-title">${notification.title}</span>
+                            ${!notification.isRead ? '<span class="unread-badge">Unread</span>' : ''}
+                            ${notification.isGuest ? '<span class="guest-badge">Guest</span>' : ''}
+                        </div>
+                        <span class="notification-time" title="${formattedDate}">${timeAgo}</span>
+                    </div>
+                    <div class="notification-content">${notification.message}</div>
+                    ${notification.detailedMessage ? 
+                        `<div class="notification-details">${notification.detailedMessage}</div>` : ''}
+                    <div class="notification-actions">
+                        <button class="btn btn-sm btn-primary" onclick="markNotificationAsRead(${notification.id})">
+                            Mark as ${notification.isRead ? 'unread' : 'read'}
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteNotification(${notification.id})">
+                            Delete
+                        </button>
+                        ${notification.type === 'new_booking' ? 
+                            `<button class="btn btn-sm btn-success" onclick="viewBookingDetails(${notification.bookingIds[0]})">
+                                View Booking
+                            </button>` 
+                            : ''}
+                    </div>
+                </div>
+            `;
+        });
+    }
+    
+    allNotificationsList.innerHTML = html;
+    console.log("All notifications list
