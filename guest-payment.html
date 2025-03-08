@@ -29,7 +29,117 @@
             <div class="payment-card">
                 <div class="booking-summary">
                     <h2 class="summary-title">Your Booking Summary</h2>
-                    
+                    <!-- Guest Info Section for Guest Payment Page -->
+<div class="guest-information-section" style="background-color: white; border-radius: 10px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 20px;">
+    <h2 class="section-title">Guest Information</h2>
+    <p>Please provide your contact information to proceed with the booking.</p>
+    
+    <form id="guestInfoForm">
+        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label for="guestNameInput">Your Name</label>
+                <input type="text" id="guestNameInput" name="guestName" required class="form-control">
+                <div class="error-message" id="nameError"></div>
+            </div>
+            <div class="form-group">
+                <label for="guestPhoneInput">Phone Number</label>
+                <input type="tel" id="guestPhoneInput" name="guestPhone" required class="form-control">
+                <div class="error-message" id="phoneError"></div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+// Add this to your guest-payment.js file
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmButton = document.getElementById('confirmButton');
+    const guestNameInput = document.getElementById('guestNameInput');
+    const guestPhoneInput = document.getElementById('guestPhoneInput');
+    const nameError = document.getElementById('nameError');
+    const phoneError = document.getElementById('phoneError');
+    
+    // Get stored guest info if available
+    const storedGuestUser = sessionStorage.getItem('guestUser');
+    if (storedGuestUser) {
+        const guestUser = JSON.parse(storedGuestUser);
+        guestNameInput.value = guestUser.name || '';
+        guestPhoneInput.value = guestUser.phone || '';
+    }
+    
+    // Make confirm button disabled by default
+    if (confirmButton) {
+        confirmButton.disabled = true;
+        confirmButton.style.opacity = '0.5';
+        confirmButton.style.cursor = 'not-allowed';
+    }
+    
+    // Function to validate form
+    function validateGuestForm() {
+        let isValid = true;
+        
+        // Check name
+        if (!guestNameInput.value.trim()) {
+            nameError.textContent = 'Please enter your name';
+            isValid = false;
+        } else {
+            nameError.textContent = '';
+        }
+        
+        // Check phone
+        if (!guestPhoneInput.value.trim()) {
+            phoneError.textContent = 'Please enter your phone number';
+            isValid = false;
+        } else {
+            phoneError.textContent = '';
+        }
+        
+        // Enable/disable button based on validation
+        if (confirmButton) {
+            if (isValid) {
+                confirmButton.disabled = false;
+                confirmButton.style.opacity = '1';
+                confirmButton.style.cursor = 'pointer';
+            } else {
+                confirmButton.disabled = true;
+                confirmButton.style.opacity = '0.5';
+                confirmButton.style.cursor = 'not-allowed';
+            }
+        }
+        
+        return isValid;
+    }
+    
+    // Validate on input
+    guestNameInput.addEventListener('input', validateGuestForm);
+    guestPhoneInput.addEventListener('input', validateGuestForm);
+    
+    // Update the confirmBooking function to get guest info from the form
+    const originalConfirmBooking = confirmBooking;
+    confirmBooking = function() {
+        if (!validateGuestForm()) {
+            return;
+        }
+        
+        // Create updated guest user object
+        const guestUser = {
+            id: 'guest-' + Date.now(),
+            name: guestNameInput.value.trim(),
+            phone: guestPhoneInput.value.trim(), 
+            isGuest: true
+        };
+        
+        // Update in session storage
+        sessionStorage.setItem('guestUser', JSON.stringify(guestUser));
+        
+        // Call the original function
+        originalConfirmBooking();
+    };
+    
+    // Initial validation
+    validateGuestForm();
+});
+</script>
                     <div class="guest-info-summary">
                         <p><strong>Name:</strong> <span id="guestNameDisplay"></span></p>
                         <p><strong>Phone:</strong> <span id="guestPhoneDisplay"></span></p>

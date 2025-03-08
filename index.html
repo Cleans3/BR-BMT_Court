@@ -96,7 +96,9 @@
     </div>
     
     <div class="login-modal" id="loginModal">
-        <div class="modal-content">
+    <div class="modal-content" style="display: flex; max-width: 800px;">
+        <!-- Login Section (Left) -->
+        <div style="flex: 1; padding: 20px; border-right: 1px solid #eee;">
             <span class="close-btn" id="closeLoginBtn">&times;</span>
             <div class="modal-header">
                 <h2>Login</h2>
@@ -116,7 +118,17 @@
                 <p class="form-note">Don't have an account? <a href="register.html">Register here</a></p>
             </form>
         </div>
+        
+        <!-- Guest Option (Right) -->
+        <div style="flex: 1; padding: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+            <h2>Continue as Guest</h2>
+            <p style="text-align: center; margin-bottom: 20px;">No login required. Just provide your details on the next screen.</p>
+            <button class="btn btn-primary" id="guestContinueBtn" style="padding: 15px 30px; font-size: 1.1rem;">
+                Continue to Payment
+            </button>
+        </div>
     </div>
+</div>
     
     <script src="js/booking.js"></script>
 </body>

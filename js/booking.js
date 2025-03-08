@@ -810,5 +810,99 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+// Add these custom styles to your booking.js file
+// Update the time slot styles
+document.addEventListener('DOMContentLoaded', function() {
+    // Add custom CSS for the time slots
+    const styleElement = document.createElement('style');
+    styleElement.textContent = `
+        /* Rush hour styling */
+        .time-slot.rush-hour.available {
+            background-color: #fff9e6 !important; /* Light yellow */
+        }
+        
+        .time-slot.rush-hour.selected {
+            background-color: var(--selected-color) !important;
+        }
+        
+        /* Your booking styling */
+        .time-slot.user-booked {
+            background-color: #74b9ff !important; /* Bright blue */
+            color: white !important;
+        }
+        
+        /* Available slot styling */
+        .time-slot.available {
+            background-color: #f8f9fa !important; /* Very light gray */
+        }
+        
+        /* Selected slot styling */
+        .time-slot.selected {
+            background-color: var(--selected-color) !important;
+            color: white !important;
+        }
+    `;
+    document.head.appendChild(styleElement);
+    
+    // Updated handleBooking function
+    function updatedHandleBooking() {
+        console.log("Handling booking...");
+        
+        if (!selectedSlots.length) {
+            console.log("No slots selected");
+            return;
+        }
+        
+        console.log(`Processing booking for ${selectedSlots.length} selected slots`);
+        
+        // Store the selections in sessionStorage regardless of login status
+        sessionStorage.setItem('selectedSlots', JSON.stringify(selectedSlots));
+        
+        // Show the login modal with guest option
+        const loginModal = document.getElementById('loginModal');
+        if (loginModal) {
+            loginModal.style.display = 'flex';
+            
+            // Set up the guest continue button
+            const guestContinueBtn = document.getElementById('guestContinueBtn');
+            if (guestContinueBtn) {
+                guestContinueBtn.addEventListener('click', function() {
+                    // Create a default guest user
+                    const guestUser = {
+                        id: 'guest-' + Date.now(),
+                        name: 'Guest User',
+                        isGuest: true
+                    };
+                    sessionStorage.setItem('guestUser', JSON.stringify(guestUser));
+                    
+                    // Redirect to guest payment page
+                    window.location.href = 'guest-payment.html';
+                });
+            }
+        } else {
+            console.error("Login modal not found!");
+        }
+    }
+    
+    // Override the original handleBooking function
+    const bookBtn = document.getElementById('bookButton');
+    if (bookBtn) {
+        // Remove existing event listeners
+        const newBookBtn = bookBtn.cloneNode(true);
+        bookBtn.parentNode.replaceChild(newBookBtn, bookBtn);
+        
+        // Add our updated handler
+        newBookBtn.addEventListener('click', function() {
+            if (currentUser) {
+                // If logged in, go directly to payment
+                sessionStorage.setItem('selectedSlots', JSON.stringify(selectedSlots));
+                window.location.href = 'payment.html';
+            } else {
+                // Otherwise show login/guest modal
+                updatedHandleBooking();
+            }
+        });
+    }
+});
 // Call init when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', initApp);
