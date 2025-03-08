@@ -695,13 +695,18 @@ function handleBooking() {
     
     if (currentUser) {
         // Logged in user - redirect to regular payment page
+        console.log("User is logged in, redirecting to payment.html");
         window.location.href = 'payment.html';
     } else {
-        // Guest user - show guest information form
+        // Guest user - show guest information form OR redirect directly
+        console.log("User is not logged in, handling as guest");
+        
         if (guestBookingModal) {
+            console.log("Showing guest booking modal");
             guestBookingModal.style.display = 'flex';
         } else {
-            // If guest modal doesn't exist for some reason, create default guest
+            console.log("Guest booking modal not found, redirecting to guest-payment.html");
+            // Create a default guest user
             const guestUser = {
                 id: 'guest-' + Date.now(),
                 name: 'Guest User',
@@ -712,7 +717,6 @@ function handleBooking() {
         }
     }
 }
-
 function handleGuestBooking(e) {
     e.preventDefault();
     
