@@ -3,8 +3,6 @@ const loginBtn = document.getElementById('loginBtn');
 const loginModal = document.getElementById('loginModal');
 const closeLoginBtn = document.getElementById('closeLoginBtn');
 const loginForm = document.getElementById('loginForm');
-const bookBtn = document.getElementById('bookButton');
-const courtsContainer = document.getElementById('courtsContainer');
 const authContainer = document.getElementById('authContainer');
 const prevWeekBtn = document.getElementById('prevWeek');
 const nextWeekBtn = document.getElementById('nextWeek');
@@ -17,6 +15,8 @@ const guestBookingModal = document.getElementById('guestBookingModal');
 const closeGuestBtn = document.getElementById('closeGuestBtn');
 const guestBookingForm = document.getElementById('guestBookingForm');
 const guestBookBtn = document.getElementById('guestBookBtn');
+// Get the book button - important to get it AFTER the DOM has loaded
+const bookButton = document.getElementById('bookButton');
 
 // App State
 let currentUser = null;
@@ -31,38 +31,7 @@ const courtNames = {
     lizunex: ["Court 1", "Court 2", "Court 3", "Court 4", "Court 5", "Court 6"],
     vnbc: ["Court 1", "Court 2", "Court 3", "Court 4", "Court 5", "Court 6"] // Fixed to start at 1 instead of 7
 };
-// Add this to the top of your booking.js file to make sure you have the right reference
-let bookBtn = document.getElementById('bookButton');
 
-// Replace your handleBooking function with this
-function handleBooking() {
-    // Make sure we have selected slots and the button is active
-    if (!selectedSlots.length || !bookBtn || !bookBtn.classList.contains('active')) {
-        return;
-    }
-    
-    // Simply store the selections - no login required
-    sessionStorage.setItem('selectedSlots', JSON.stringify(selectedSlots));
-    
-    if (currentUser) {
-        // User is logged in - go directly to payment page
-        window.location.href = 'payment.html';
-    } else {
-        // Guest user - show guest booking form
-        if (guestBookingModal) {
-            guestBookingModal.style.display = 'flex';
-        } else {
-            // Fallback - create a default guest user
-            const guestUser = {
-                id: 'guest-' + Date.now(),
-                name: 'Guest User',
-                isGuest: true
-            };
-            sessionStorage.setItem('guestUser', JSON.stringify(guestUser));
-            window.location.href = 'guest-payment.html';
-        }
-    }
-}
 // Time slots from 7am to 1am with 30-minute intervals
 const timeSlots = [];
 for (let hour = 7; hour <= 24; hour++) {
@@ -106,6 +75,7 @@ let bookings = [
 
 // Initialize the application
 function initApp() {
+    console.log("Initializing app...");
     setupEventListeners();
     loadUserFromStorage();
     loadBookingsFromStorage();
@@ -137,6 +107,8 @@ function initApp() {
         storedUsers.push({ id: storedUsers.length + 1, username: 'admint', password: 'minhbeo', name: 'Admin User', isAdmin: true });
         localStorage.setItem('users', JSON.stringify(storedUsers));
     }
+    
+    console.log("App initialization complete");
 }
 
 // Load bookings from localStorage
@@ -144,9 +116,11 @@ function loadBookingsFromStorage() {
     const storedBookings = localStorage.getItem('bookings');
     if (storedBookings) {
         bookings = JSON.parse(storedBookings);
+        console.log(`Loaded ${bookings.length} bookings from storage`);
     } else {
         // Initialize with example bookings
         localStorage.setItem('bookings', JSON.stringify(bookings));
+        console.log("Initialized example bookings in storage");
     }
 }
 
@@ -157,6 +131,7 @@ function isUserAdmin() {
 
 // Setup event listeners
 function setupEventListeners() {
+    console.log("Setting up event listeners");
     // Auth related
     if (loginBtn) {
         loginBtn.addEventListener('click', openLoginModal);
@@ -185,14 +160,16 @@ function setupEventListeners() {
     }
     
     // Court tabs navigation
-    courtTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const venue = tab.getAttribute('data-venue');
-            currentCourtVenue = venue; // Switch venue
-            updateCourtTabs();
-            renderCourts();
+    if (courtTabs && courtTabs.length > 0) {
+        courtTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const venue = tab.getAttribute('data-venue');
+                currentCourtVenue = venue; // Switch venue
+                updateCourtTabs();
+                renderCourts();
+            });
         });
-    });
+    }
     
     // Guest booking modal
     if (guestBookingForm) {
@@ -203,9 +180,15 @@ function setupEventListeners() {
         closeGuestBtn.addEventListener('click', closeGuestBookingModal);
     }
     
-    // Booking
+    // Get the book button - we need to get this AFTER the DOM has loaded
+    const bookBtn = document.getElementById('bookButton');
+    
+    // Booking button
     if (bookBtn) {
         bookBtn.addEventListener('click', handleBooking);
+        console.log("Booking button event listener added");
+    } else {
+        console.error("Book button not found!");
     }
 }
 
@@ -309,7 +292,10 @@ function loadUserFromStorage() {
 }
 
 function updateAuthDisplay() {
-    if (!authContainer) return;
+    if (!authContainer) {
+        console.error("Auth container not found!");
+        return;
+    }
     
     if (currentUser) {
         let adminButton = '';
@@ -362,7 +348,11 @@ function updateWeekDisplay() {
 
 // Generate court rendering
 function renderCourts() {
-    if (!courtsContainer) return;
+    console.log("Rendering courts...");
+    if (!courtsContainer) {
+        console.error("Courts container not found!");
+        return;
+    }
     
     courtsContainer.innerHTML = '';
     
@@ -396,6 +386,7 @@ function renderCourts() {
     
     // Add event listeners to time slots after rendering
     addTimeSlotListeners();
+    console.log("Courts rendered");
 }
 
 function generateDaysForCourt(courtId, weekStart) {
@@ -548,7 +539,15 @@ function generateTimeSlotsForDay(courtId, dateString, dayOfWeek) {
 }
 
 function addTimeSlotListeners() {
+    console.log("Adding time slot listeners");
     const slots = document.querySelectorAll('.time-slot');
+    
+    if (slots.length === 0) {
+        console.error("No time slots found to add listeners to!");
+        return;
+    }
+    
+    console.log(`Found ${slots.length} time slots to add listeners to`);
     
     slots.forEach(slot => {
         // All time slots, when clicked, will allow selection without requiring login
@@ -614,7 +613,11 @@ function toggleSlotSelection() {
 }
 
 function updateBookButtonState() {
-    if (!bookBtn) return;
+    const bookBtn = document.getElementById('bookButton');
+    if (!bookBtn) {
+        console.error("Book button not found for state update!");
+        return;
+    }
     
     if (selectedSlots.length > 0) {
         bookBtn.classList.add('active');
@@ -624,7 +627,10 @@ function updateBookButtonState() {
 }
 
 function updateSelectionSummary() {
-    if (!selectionSummary || !selectedCount || !selectionDetails) return;
+    if (!selectionSummary || !selectedCount || !selectionDetails) {
+        console.error("Selection summary elements not found!");
+        return;
+    }
     
     if (selectedSlots.length > 0) {
         selectedCount.textContent = selectedSlots.length;
@@ -668,9 +674,21 @@ function getCourtDisplayName(courtId) {
 }
 
 function handleBooking() {
-    if (!selectedSlots.length || !bookBtn || !bookBtn.classList.contains('active')) {
+    console.log("Handling booking...");
+    // Get the bookButton directly to ensure we have the latest reference
+    const bookBtn = document.getElementById('bookButton');
+    
+    if (!selectedSlots.length) {
+        console.log("No slots selected");
         return;
     }
+    
+    if (bookBtn && !bookBtn.classList.contains('active')) {
+        console.log("Book button is not active");
+        return;
+    }
+    
+    console.log(`Processing booking for ${selectedSlots.length} selected slots`);
     
     // Store the selections in sessionStorage regardless of login status
     sessionStorage.setItem('selectedSlots', JSON.stringify(selectedSlots));
