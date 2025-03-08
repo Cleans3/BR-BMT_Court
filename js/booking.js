@@ -19,6 +19,52 @@ const guestBookingForm = document.getElementById('guestBookingForm');
 const guestBookBtn = document.getElementById('guestBookBtn');
 
 // App State
+let currentUser = null;
+let selectedSlots = [];
+let currentDate = new Date();
+let currentCourtPage = 1;
+let currentCourtVenue = 'lizunex'; // Default venue
+const courtCount = 6;
+const courtsPerPage = 6; // Show all 6 courts at once
+const daysInWeek = 7;
+const courtNames = {
+    lizunex: ["Court 1", "Court 2", "Court 3", "Court 4", "Court 5", "Court 6"],
+    vnbc: ["Court 1", "Court 2", "Court 3", "Court 4", "Court 5", "Court 6"] // Fixed to start at 1 instead of 7
+};
+
+// Time slots from 7am to 1am with 30-minute intervals
+const timeSlots = [];
+for (let hour = 7; hour <= 24; hour++) {
+    timeSlots.push(`${hour % 24}:00`);
+    timeSlots.push(`${hour % 24}:30`);
+}
+timeSlots.push('1:00');
+
+// Shorter list of time slots for display in the table headers
+const displayTimeSlots = [];
+for (let hour = 7; hour <= 24; hour += 3) {
+    displayTimeSlots.push(`${hour % 24}:00`);
+}
+displayTimeSlots.push('1:00');
+
+// Rush hours (5 PM - 11 PM weekdays, 9 AM - 11 PM weekends)
+function isRushHour(time, day) {
+    const hour = parseInt(time.split(':')[0]);
+    const isWeekend = (day === 'Sat' || day === 'Sun');
+    
+    if (isWeekend) {
+        return hour >= 9 && hour < 23; // 9 AM - 11 PM on weekends
+    } else {
+        return hour >= 17 && hour < 23; // 5 PM - 11 PM on weekdays
+    }
+}
+
+// Mock database for users and bookings
+let users = [
+    { id: 1, username: 'admint', password: 'minhbeo', name: 'Admin User', isAdmin: true },
+    { id: 2, username: 'user1', password: 'password1', name: 'John Doe', isAdmin: false }
+];
+
 let bookings = [
     // Example bookings
     { id: 1, userId: 2, courtId: 1, date: '2025-03-04', time: '10:00' },
@@ -488,18 +534,12 @@ function handleTimeSlotClick(event) {
         return;
     }
     
-    // If not logged in, show login modal
-    if (!currentUser) {
-        openLoginModal();
-        return;
-    }
-    
     // Don't allow toggling user's already booked slots
     if (timeSlot.classList.contains('user-booked')) {
         return;
     }
     
-    // If user is logged in, toggle selection
+    // Allow selection even if not logged in
     toggleSlotSelection.call(timeSlot);
 }
 
@@ -611,6 +651,21 @@ function handleBooking() {
         // Guest user - show guest information form
         if (guestBookingModal) {
             guestBookingModal.style.display = 'flex';
+        } else {
+            // If guest modal doesn't exist, store selections for guest payment directly
+            sessionStorage.setItem('selectedSlots', JSON.stringify(selectedSlots));
+            
+            // Create a default guest user
+            const guestUser = {
+                id: 'guest-' + Date.now(),
+                name: 'Guest User',
+                isGuest: true
+            };
+            
+            sessionStorage.setItem('guestUser', JSON.stringify(guestUser));
+            
+            // Redirect to guest payment page
+            window.location.href = 'guest-payment.html';
         }
     }
 }
@@ -687,131 +742,4 @@ function isSlotBookedByUser(courtId, date, time) {
 }
 
 // Call init when the DOM is fully loaded
-document.addEventListener('DOMContentLoaded', initApp); currentUser = null;
-let selectedSlots = [];
-let currentDate = new Date();
-let currentCourtPage = 1;
-let currentCourtVenue = 'lizunex'; // Default venue
-const courtCount = 6;
-const courtsPerPage = 6; // Show all 6 courts at once
-const daysInWeek = 7;
-const courtNames = {
-    lizunex: ["Court 1", "Court 2", "Court 3", "Court 4", "Court 5", "Court 6"],
-    vnbc: ["Court 1", "Court 2", "Court 3", "Court 4", "Court 5", "Court 6"] // Fixed to start at 1 instead of 7
-};
-
-// Time slots from 7am to 1am with 30-minute intervals
-const timeSlots = [];
-for (let hour = 7; hour <= 24; hour++) {
-    timeSlots.push(`${hour % 24}:00`);
-    timeSlots.push(`${hour % 24}:30`);
-}
-timeSlots.push('1:00');
-
-// Shorter list of time slots for display in the table headers
-const displayTimeSlots = [];
-for (let hour = 7; hour <= 24; hour += 3) {
-    displayTimeSlots.push(`${hour % 24}:00`);
-}
-displayTimeSlots.push('1:00');
-
-// Rush hours (6 PM - 9 PM weekdays, 9 AM - 9 PM weekends)
-function isRushHour(time, day) {
-    const hour = parseInt(time.split(':')[0]);
-    const isWeekend = (day === 'Sat' || day === 'Sun');
-    
-    if (isWeekend) {
-        return hour >= 9 && hour < 21; // 9 AM - 9 PM on weekends
-    } else {
-        return hour >= 18 && hour < 21; // 6 PM - 9 PM on weekdays
-    }
-}
-
-// Mock database for users and bookings
-let users = [
-    { id: 1, username: 'admint', password: 'minhbeo', name: 'Admin User', isAdmin: true },
-    { id: 2, username: 'user1', password: 'password1', name: 'John Doe', isAdmin: false }
-];
-
-// Check if users are already in localStorage
-if (!localStorage.getItem('users')) {
-    localStorage.setItem('users', JSON.stringify(users));
-} else {
-    // Make sure the admin user exists
-    const storedUsers = JSON.parse(localStorage.getItem('users'));
-    const adminExists = storedUsers.some(user => user.username === 'admint' && user.isAdmin === true);
-    
-    if (!adminExists) {
-        // Add admin user if it doesn't exist
-        storedUsers.push({ id: storedUsers.length + 1, username: 'admint', password: 'minhbeo', name: 'Admin User', isAdmin: true });
-        localStorage.setItem('users', JSON.stringify(storedUsers));
-    }
-    
-    users = storedUsers;
-}
-
-// Update the handleTimeSlotClick function to make login optional
-function handleTimeSlotClick(event) {
-    const timeSlot = event.currentTarget;
-    
-    // Don't allow interaction with occupied slots
-    if (timeSlot.classList.contains('occupied')) {
-        alert('This slot is already booked.');
-        return;
-    }
-    
-    // Don't allow toggling user's already booked slots
-    if (timeSlot.classList.contains('user-booked')) {
-        return;
-    }
-    
-    // Allow selection even if not logged in
-    toggleSlotSelection.call(timeSlot);
-}
-
-// Update the isRushHour function with new hours (5pm-11pm)
-function isRushHour(time, day) {
-    const hour = parseInt(time.split(':')[0]);
-    const isWeekend = (day === 'Sat' || day === 'Sun');
-    
-    if (isWeekend) {
-        return hour >= 9 && hour < 23; // 9 AM - 11 PM on weekends
-    } else {
-        return hour >= 17 && hour < 23; // 5 PM - 11 PM on weekdays
-    }
-}
-
-// Update the handleBooking function to accommodate guest bookings without login
-function handleBooking() {
-    if (!selectedSlots.length || !bookBtn || !bookBtn.classList.contains('active')) {
-        return;
-    }
-    
-    if (currentUser) {
-        // Logged in user - store selections in sessionStorage for the payment page
-        sessionStorage.setItem('selectedSlots', JSON.stringify(selectedSlots));
-        
-        // Redirect to payment page
-        window.location.href = 'payment.html';
-    } else {
-        // Guest user - show guest information form
-        if (guestBookingModal) {
-            guestBookingModal.style.display = 'flex';
-        } else {
-            // If guest modal doesn't exist, store selections for guest payment directly
-            sessionStorage.setItem('selectedSlots', JSON.stringify(selectedSlots));
-            
-            // Create a default guest user
-            const guestUser = {
-                id: 'guest-' + Date.now(),
-                name: 'Guest User',
-                isGuest: true
-            };
-            
-            sessionStorage.setItem('guestUser', JSON.stringify(guestUser));
-            
-            // Redirect to guest payment page
-            window.location.href = 'guest-payment.html';
-        }
-    }
-}
+document.addEventListener('DOMContentLoaded', initApp);

@@ -966,8 +966,7 @@ h1:before {
 .section-title:before {
     content: "🏸 ";
     font-size: 0.9em;
-}
-/* Updated time-slot styles */
+}/* Updated time-slot styles */
 body#booking-page .time-slot {
     display: block;
     width: 100%;
