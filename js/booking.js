@@ -787,6 +787,28 @@ function isSlotBookedByUser(courtId, date, time) {
         booking.userId === currentUser.id
     );
 }
-
+document.addEventListener('DOMContentLoaded', function() {
+    const bookBtn = document.getElementById('bookButton');
+    if (bookBtn) {
+        // Override any existing listeners with a new one
+        bookBtn.addEventListener('click', function() {
+            if (selectedSlots.length > 0) {
+                // Save slots to session storage
+                sessionStorage.setItem('selectedSlots', JSON.stringify(selectedSlots));
+                
+                // Create a default guest user and go directly to payment
+                const guestUser = {
+                    id: 'guest-' + Date.now(),
+                    name: 'Guest User',
+                    isGuest: true
+                };
+                sessionStorage.setItem('guestUser', JSON.stringify(guestUser));
+                window.location.href = 'guest-payment.html';
+            } else {
+                alert('Please select at least one time slot');
+            }
+        });
+    }
+});
 // Call init when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', initApp);
