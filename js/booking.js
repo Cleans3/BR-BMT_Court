@@ -1,35 +1,26 @@
 // DOM Elements
 const loginBtn = document.getElementById('loginBtn');
 const loginModal = document.getElementById('loginModal');
+const guestLoginModal = document.getElementById('guestLoginModal');
 const closeLoginBtn = document.getElementById('closeLoginBtn');
+const closeGuestLoginBtn = document.getElementById('closeGuestLoginBtn');
 const loginForm = document.getElementById('loginForm');
+const guestLoginForm = document.getElementById('guestLoginForm');
 const authContainer = document.getElementById('authContainer');
-const prevDayBtn = document.getElementById('prevDay');
-const nextDayBtn = document.getElementById('nextDay');
-const currentDayDisplay = document.getElementById('currentDayDisplay');
 const selectionSummary = document.getElementById('selectionSummary');
 const selectedCount = document.getElementById('selectedCount');
 const selectionDetails = document.getElementById('selectionDetails');
-const courtTabs = document.querySelectorAll('.court-tab');
-const guestBookingModal = document.getElementById('guestBookingModal');
-const closeGuestBtn = document.getElementById('closeGuestBtn');
-const guestBookingForm = document.getElementById('guestBookingForm');
-const guestBookBtn = document.getElementById('guestBookBtn');
+const validationMessage = document.getElementById('validationMessage');
 const bookButton = document.getElementById('bookButton');
+const guestContinueBtn = document.getElementById('guestContinueBtn');
 
 // App State
 let currentUser = null;
 let selectedSlots = [];
-let currentDate = new Date();
-let currentCourtVenue = 'lizunex'; // Default venue
+let currentVenue = 'lizunex'; // Default venue
 const courtCounts = {
     'lizunex': 6,
     'vnbc': 9
-};
-const daysInWeek = 7;
-const courtNames = {
-    lizunex: ["Court 1", "Court 2", "Court 3", "Court 4", "Court 5", "Court 6"],
-    vnbc: ["Court 1", "Court 2", "Court 3", "Court 4", "Court 5", "Court 6", "Court 7", "Court 8", "Court 9"]
 };
 
 // Time slots from 7am to 1am with 30-minute intervals
@@ -64,33 +55,28 @@ let users = [
 
 let bookings = [
     // Example bookings
-    { id: 1, userId: 2, courtId: 1, date: '2025-03-04', time: '10:00' },
-    { id: 2, userId: 2, courtId: 1, date: '2025-03-04', time: '10:30' },
-    { id: 3, userId: 1, courtId: 3, date: '2025-03-05', time: '18:00' },
-    { id: 4, userId: 1, courtId: 3, date: '2025-03-05', time: '18:30' }
+    { id: 1, userId: 2, courtId: 1, date: '2025-03-10', time: '10:00' },
+    { id: 2, userId: 2, courtId: 1, date: '2025-03-10', time: '10:30' },
+    { id: 3, userId: 1, courtId: 3, date: '2025-03-10', time: '18:00' },
+    { id: 4, userId: 1, courtId: 3, date: '2025-03-10', time: '18:30' }
 ];
 
 // Initialize the application
 function initApp() {
-    console.log("Initializing app...");
     loadUserFromStorage();
     loadBookingsFromStorage();
     
     // Force check for admin status when app initializes
     if (currentUser && currentUser.username === 'admint') {
         currentUser.isAdmin = true;
-        // Re-save to ensure the isAdmin flag is set
         saveUserToStorage(currentUser);
     }
     
-    // Force localStorage to save the admin user if not present
-    const storedUsers = JSON.parse(localStorage.getItem('users')) || [];
-    const adminExists = storedUsers.some(user => user.username === 'admint' && user.isAdmin === true);
+    // Initialize users if they don't exist
+    initializeUsers();
     
-    if (!adminExists) {
-        storedUsers.push({ id: storedUsers.length + 1, username: 'admint', password: 'minhbeo', name: 'Admin User', isAdmin: true });
-        localStorage.setItem('users', JSON.stringify(storedUsers));
-    }
+    // Load saved selected slots
+    loadSavedSelectedSlots();
     
     // Setup event listeners
     setupEventListeners();
@@ -105,8 +91,53 @@ function initApp() {
             adminNotice.style.display = 'block';
         }
     }
+}
+
+// Initialize users
+function initializeUsers() {
+    const storedUsers = JSON.parse(localStorage.getItem('users'));
     
-    console.log("App initialization complete");
+    if (!storedUsers || storedUsers.length === 0) {
+        localStorage.setItem('users', JSON.stringify(users));
+    } else {
+        // Make sure admin exists
+        const adminExists = storedUsers.some(user => user.username === 'admint' && user.isAdmin === true);
+        if (!adminExists) {
+            storedUsers.push({ 
+                id: storedUsers.length + 1, 
+                username: 'admint', 
+                password: 'minhbeo', 
+                name: 'Admin User', 
+                isAdmin: true 
+            });
+            localStorage.setItem('users', JSON.stringify(storedUsers));
+        }
+    }
+}
+
+// Load saved selected slots from localStorage for all dates
+function loadSavedSelectedSlots() {
+    selectedSlots = [];
+    
+    // Get all localStorage keys that match the selected_slots pattern
+    const dateKeys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('selected_slots_')) {
+            dateKeys.push(key);
+        }
+    }
+    
+    // Load all saved selections
+    dateKeys.forEach(key => {
+        const savedSelections = JSON.parse(localStorage.getItem(key)) || [];
+        selectedSlots = [...selectedSlots, ...savedSelections];
+    });
+    
+    // Update UI
+    updateBookButtonState();
+    updateSelectionSummary();
+    validateBookingSelection();
 }
 
 // Load bookings from localStorage
@@ -114,11 +145,9 @@ function loadBookingsFromStorage() {
     const storedBookings = localStorage.getItem('bookings');
     if (storedBookings) {
         bookings = JSON.parse(storedBookings);
-        console.log(`Loaded ${bookings.length} bookings from storage`);
     } else {
         // Initialize with example bookings
         localStorage.setItem('bookings', JSON.stringify(bookings));
-        console.log("Initialized example bookings in storage");
     }
 }
 
@@ -129,8 +158,6 @@ function isUserAdmin() {
 
 // Setup event listeners
 function setupEventListeners() {
-    console.log("Setting up event listeners");
-    
     // Auth related
     if (loginBtn) {
         loginBtn.addEventListener('click', openLoginModal);
@@ -140,52 +167,55 @@ function setupEventListeners() {
         closeLoginBtn.addEventListener('click', closeLoginModal);
     }
     
+    if (closeGuestLoginBtn) {
+        closeGuestLoginBtn.addEventListener('click', closeGuestLoginModal);
+    }
+    
     window.addEventListener('click', (e) => {
         if (e.target === loginModal) closeLoginModal();
-        if (e.target === guestBookingModal) closeGuestBookingModal();
+        if (e.target === guestLoginModal) closeGuestLoginModal();
     });
     
     if (loginForm) {
         loginForm.addEventListener('submit', handleLogin);
     }
     
-    // Court tabs navigation
-    if (courtTabs && courtTabs.length > 0) {
-        courtTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                courtTabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
+    if (guestLoginForm) {
+        guestLoginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('guestUsername').value;
+            const password = document.getElementById('guestPassword').value;
+            
+            // Get users from localStorage
+            const storedUsers = JSON.parse(localStorage.getItem('users')) || [];
+            
+            const user = storedUsers.find(u => u.username === username && u.password === password);
+            
+            if (user) {
+                currentUser = user;
+                saveUserToStorage(user);
                 
-                const venue = tab.getAttribute('data-venue');
-                currentCourtVenue = venue; // Switch venue
+                // Store selected slots in session storage for payment page
+                sessionStorage.setItem('selectedSlots', JSON.stringify(selectedSlots));
                 
-                if (typeof window.renderSingleDayTable === 'function') {
-                    window.renderSingleDayTable();
-                }
-            });
+                // Redirect to payment page
+                window.location.href = 'payment.html';
+            } else {
+                alert('Invalid username or password');
+            }
         });
     }
     
-    // Guest booking modal
-    if (guestBookingForm) {
-        guestBookingForm.addEventListener('submit', handleGuestBooking);
-    }
-    
-    if (closeGuestBtn) {
-        closeGuestBtn.addEventListener('click', closeGuestBookingModal);
+    // Booking button
+    if (bookButton) {
+        bookButton.addEventListener('click', handleBooking);
     }
     
     // Guest continue button
-    const guestContinueBtn = document.getElementById('guestContinueBtn');
     if (guestContinueBtn) {
         guestContinueBtn.addEventListener('click', function() {
-            // Create a default guest user
-            const guestUser = {
-                id: 'guest-' + Date.now(),
-                name: 'Guest User',
-                isGuest: true
-            };
-            sessionStorage.setItem('guestUser', JSON.stringify(guestUser));
+            // Store selected slots in session storage for guest payment page
             sessionStorage.setItem('selectedSlots', JSON.stringify(selectedSlots));
             
             // Redirect to guest payment page
@@ -193,31 +223,13 @@ function setupEventListeners() {
         });
     }
     
-    // Booking button
-    if (bookButton) {
-        bookButton.addEventListener('click', handleBooking);
-        console.log("Booking button event listener added");
-    } else {
-        console.error("Book button not found!");
-    }
+    // Exchange link handling in main script
 }
 
-function closeGuestBookingModal() {
-    if (guestBookingModal) {
-        guestBookingModal.style.display = 'none';
+function closeGuestLoginModal() {
+    if (guestLoginModal) {
+        guestLoginModal.style.display = 'none';
     }
-}
-
-// Update court tabs active state
-function updateCourtTabs() {
-    courtTabs.forEach(tab => {
-        const venue = tab.getAttribute('data-venue');
-        if (venue === currentCourtVenue) {
-            tab.classList.add('active');
-        } else {
-            tab.classList.remove('active');
-        }
-    });
 }
 
 // Authentication functions
@@ -242,7 +254,7 @@ function handleLogin(e) {
     const password = document.getElementById('password').value;
     
     // Load users from localStorage
-    const storedUsers = JSON.parse(localStorage.getItem('users')) || users;
+    const storedUsers = JSON.parse(localStorage.getItem('users')) || [];
     
     const user = storedUsers.find(u => u.username === username && u.password === password);
     
@@ -251,6 +263,7 @@ function handleLogin(e) {
         saveUserToStorage(user);
         updateAuthDisplay();
         closeLoginModal();
+        closeGuestLoginModal();
         
         // Re-render the table to show user's bookings
         if (typeof window.renderSingleDayTable === 'function') {
@@ -313,10 +326,7 @@ function loadUserFromStorage() {
 }
 
 function updateAuthDisplay() {
-    if (!authContainer) {
-        console.error("Auth container not found!");
-        return;
-    }
+    if (!authContainer) return;
     
     if (currentUser) {
         let adminButton = '';
@@ -346,19 +356,17 @@ function updateAuthDisplay() {
 
 // Add event listeners to time slots
 function addTimeSlotListeners() {
-    console.log("Adding time slot listeners");
     const slots = document.querySelectorAll('.time-slot');
     
-    if (slots.length === 0) {
-        console.error("No time slots found to add listeners to!");
-        return;
-    }
-    
-    console.log(`Found ${slots.length} time slots to add listeners to`);
+    if (slots.length === 0) return;
     
     slots.forEach(slot => {
-        // All time slots, when clicked, will allow selection without requiring login
-        slot.addEventListener('click', handleTimeSlotClick);
+        // Remove existing listeners by cloning the element
+        const newSlot = slot.cloneNode(true);
+        slot.parentNode.replaceChild(newSlot, slot);
+        
+        // Add new click event listener
+        newSlot.addEventListener('click', handleTimeSlotClick);
     });
 }
 
@@ -377,30 +385,47 @@ function handleTimeSlotClick(event) {
     validateAndToggleSlot.call(timeSlot);
 }
 
-function toggleSlotSelection() {
+// Combined function for validation and toggling
+function validateAndToggleSlot() {
     const courtId = parseInt(this.dataset.court);
     const date = this.dataset.date;
     const time = this.dataset.time;
     const isRushHour = this.dataset.rush === 'true';
+    
+    // Create a storage key for this date
+    const dateKey = `selected_slots_${date}`;
+    
+    // Get or initialize the selection tracking for this date
+    if (!localStorage.getItem(dateKey)) {
+        localStorage.setItem(dateKey, JSON.stringify([]));
+    }
+    
+    // Get the stored selections for this date
+    let dateSelections = JSON.parse(localStorage.getItem(dateKey)) || [];
     
     if (this.classList.contains('available')) {
         // Select the slot
         this.classList.remove('available');
         this.classList.add('selected');
         
-        selectedSlots.push({
+        // Add to selections
+        const newSlot = {
             courtId,
             date,
             time,
             displayTime: formatDisplayTime(time),
             isRushHour
-        });
+        };
+        
+        selectedSlots.push(newSlot);
+        dateSelections.push(newSlot);
+        
     } else if (this.classList.contains('selected')) {
         // Deselect the slot
         this.classList.remove('selected');
         this.classList.add('available');
         
-        // Remove from selected array
+        // Remove from selected slots
         const index = selectedSlots.findIndex(s => 
             s.courtId === courtId && 
             s.date === date && 
@@ -410,31 +435,42 @@ function toggleSlotSelection() {
         if (index !== -1) {
             selectedSlots.splice(index, 1);
         }
+        
+        // Remove from date selections
+        const dateIndex = dateSelections.findIndex(s => 
+            s.courtId === courtId && 
+            s.date === date && 
+            s.time === time
+        );
+        
+        if (dateIndex !== -1) {
+            dateSelections.splice(dateIndex, 1);
+        }
     }
     
+    // Update localStorage
+    localStorage.setItem(dateKey, JSON.stringify(dateSelections));
+    
+    // Update UI
     updateBookButtonState();
     updateSelectionSummary();
+    validateBookingSelection();
 }
 
 function updateBookButtonState() {
-    const bookBtn = document.getElementById('bookButton');
-    if (!bookBtn) {
-        console.error("Book button not found for state update!");
-        return;
-    }
+    if (!bookButton) return;
     
-    if (selectedSlots.length > 0) {
-        bookBtn.classList.add('active');
+    const isValid = validateBookingSelection();
+    
+    if (selectedSlots.length > 0 && isValid) {
+        bookButton.classList.add('active');
     } else {
-        bookBtn.classList.remove('active');
+        bookButton.classList.remove('active');
     }
 }
 
 function updateSelectionSummary() {
-    if (!selectionSummary || !selectedCount || !selectionDetails) {
-        console.error("Selection summary elements not found!");
-        return;
-    }
+    if (!selectionSummary || !selectedCount || !selectionDetails) return;
     
     if (selectedSlots.length > 0) {
         selectedCount.textContent = selectedSlots.length;
@@ -467,6 +503,137 @@ function updateSelectionSummary() {
     }
 }
 
+function validateBookingSelection() {
+    if (!validationMessage || !selectionSummary) return false;
+    
+    if (selectedSlots.length === 0) {
+        selectionSummary.classList.add('hidden');
+        return false;
+    }
+    
+    // Group selections by court and date (key format: courtId-date)
+    const groupedByCourtDate = {};
+    
+    selectedSlots.forEach(slot => {
+        const key = `${slot.courtId}-${slot.date}`;
+        if (!groupedByCourtDate[key]) {
+            groupedByCourtDate[key] = [];
+        }
+        groupedByCourtDate[key].push(slot);
+    });
+    
+    // Check each group for continuous chunks of at least 2 slots
+    const validChunks = [];
+    const invalidSingleSlots = [];
+    
+    for (const [key, slots] of Object.entries(groupedByCourtDate)) {
+        if (slots.length === 0) continue;
+        
+        // First, sort slots by time
+        slots.sort((a, b) => {
+            const [aHour, aMin] = a.time.split(':').map(Number);
+            const [bHour, bMin] = b.time.split(':').map(Number);
+            return (aHour * 60 + aMin) - (bHour * 60 + bMin);
+        });
+        
+        // Find continuous chunks
+        let currentChunk = [slots[0]];
+        
+        for (let i = 1; i < slots.length; i++) {
+            const prevSlot = slots[i-1];
+            const currentSlot = slots[i];
+            
+            // Check if slots are adjacent (30 min apart)
+            const [prevHour, prevMin] = prevSlot.time.split(':').map(Number);
+            const [currentHour, currentMin] = currentSlot.time.split(':').map(Number);
+            
+            const prevTimeInMin = prevHour * 60 + prevMin;
+            const currentTimeInMin = currentHour * 60 + currentMin;
+            
+            if (currentTimeInMin - prevTimeInMin === 30) {
+                // Adjacent, add to current chunk
+                currentChunk.push(currentSlot);
+            } else {
+                // Not adjacent, start new chunk
+                if (currentChunk.length >= 2) {
+                    validChunks.push([...currentChunk]);
+                } else {
+                    // This is a single slot, mark it
+                    invalidSingleSlots.push(...currentChunk);
+                }
+                currentChunk = [currentSlot];
+            }
+        }
+        
+        // Add the final chunk
+        if (currentChunk.length >= 2) {
+            validChunks.push(currentChunk);
+        } else {
+            invalidSingleSlots.push(...currentChunk);
+        }
+    }
+    
+    // Validation criteria
+    let isValid = true;
+    let validationMessageText = "";
+    
+    if (validChunks.length === 0 && selectedSlots.length > 0) {
+        isValid = false;
+        validationMessageText = "Please select at least 2 adjacent time slots.";
+    } else if (invalidSingleSlots.length > 0) {
+        isValid = false;
+        validationMessageText = "All selected slots must be part of groups of at least 2 adjacent slots.";
+    } else if (validChunks.length > 1) {
+        // Sort chunks by start time
+        validChunks.sort((a, b) => {
+            const [aHour, aMin] = a[0].time.split(':').map(Number);
+            const [bHour, bMin] = b[0].time.split(':').map(Number);
+            return (aHour * 60 + aMin) - (bHour * 60 + bMin);
+        });
+        
+        // Check spacing between chunks on the same court and date
+        for (let i = 1; i < validChunks.length; i++) {
+            const prevChunkEnd = validChunks[i-1][validChunks[i-1].length - 1];
+            const currentChunkStart = validChunks[i][0];
+            
+            // We only need to check chunks from the same court and date
+            if (prevChunkEnd.courtId === currentChunkStart.courtId && 
+                prevChunkEnd.date === currentChunkStart.date) {
+                
+                // Calculate time difference
+                const [prevHour, prevMin] = prevChunkEnd.time.split(':').map(Number);
+                const [currentHour, currentMin] = currentChunkStart.time.split(':').map(Number);
+                
+                const prevTimeInMin = prevHour * 60 + prevMin + 30; // Add 30 minutes for slot duration
+                const currentTimeInMin = currentHour * 60 + currentMin;
+                const timeDiff = currentTimeInMin - prevTimeInMin;
+                
+                // Must be at least 60 minutes apart (more than 1 time frame)
+                if (timeDiff < 60) {
+                    isValid = false;
+                    validationMessageText = "Time groups on the same court and date must be at least 1 hour apart.";
+                    break;
+                }
+            }
+        }
+    }
+    
+    // Update UI
+    if (isValid) {
+        validationMessage.textContent = selectedSlots.length > 0 ? "Selection valid for booking!" : "";
+        validationMessage.className = "validation-message success";
+        selectionSummary.className = "selection-summary valid";
+        bookButton.classList.add('active');
+    } else {
+        validationMessage.textContent = validationMessageText;
+        validationMessage.className = "validation-message error";
+        selectionSummary.className = "selection-summary invalid";
+        bookButton.classList.remove('active');
+    }
+    
+    return isValid;
+}
+
 function getVenueNameFromCourtId(courtId) {
     // VNBC courts are 7-15, Lizunex are 1-6
     return courtId > 6 ? 'VNBC' : 'Lizunex';
@@ -484,116 +651,7 @@ function handleBooking() {
     }
     
     // Validate booking requirements
-    // Group selections by court and date
-    const groupedByCourtDate = {};
-    
-    selectedSlots.forEach(slot => {
-        const key = `${slot.courtId}-${slot.date}`;
-        if (!groupedByCourtDate[key]) {
-            groupedByCourtDate[key] = [];
-        }
-        groupedByCourtDate[key].push(slot);
-    });
-    
-    // Check each group for continuous chunks of at least 2 slots
-    const validChunks = [];
-    const invalidGroups = [];
-    
-    for (const [key, slots] of Object.entries(groupedByCourtDate)) {
-        // First, sort slots by time
-        slots.sort((a, b) => {
-            const [aHour, aMin] = a.time.split(':').map(Number);
-            const [bHour, bMin] = b.time.split(':').map(Number);
-            return (aHour * 60 + aMin) - (bHour * 60 + bMin);
-        });
-        
-        // Find continuous chunks
-        let currentChunk = [slots[0]];
-        const chunks = [];
-        
-        for (let i = 1; i < slots.length; i++) {
-            const prevSlot = slots[i-1];
-            const currentSlot = slots[i];
-            
-            // Check if slots are adjacent (30 min apart)
-            const [prevHour, prevMin] = prevSlot.time.split(':').map(Number);
-            const [currentHour, currentMin] = currentSlot.time.split(':').map(Number);
-            
-            const prevTimeInMin = prevHour * 60 + prevMin;
-            const currentTimeInMin = currentHour * 60 + currentMin;
-            
-            if (currentTimeInMin - prevTimeInMin === 30) {
-                // Adjacent, add to current chunk
-                currentChunk.push(currentSlot);
-            } else {
-                // Not adjacent, start new chunk if current one has at least 2 slots
-                if (currentChunk.length >= 2) {
-                    chunks.push([...currentChunk]);
-                } else {
-                    invalidGroups.push([...currentChunk]);
-                }
-                currentChunk = [currentSlot];
-            }
-        }
-        
-        // Add the final chunk if it has at least 2 slots
-        if (currentChunk.length >= 2) {
-            chunks.push(currentChunk);
-        } else {
-            invalidGroups.push(currentChunk);
-        }
-        
-        // Add valid chunks to overall list
-        validChunks.push(...chunks);
-    }
-    
-    // Validation criteria
-    let isValid = true;
-    let validationMessage = "";
-    
-    if (validChunks.length === 0) {
-        isValid = false;
-        validationMessage = "Please select at least 2 adjacent time slots.";
-    } else if (validChunks.length > 1) {
-        // Sort chunks by start time
-        validChunks.sort((a, b) => {
-            const [aHour, aMin] = a[0].time.split(':').map(Number);
-            const [bHour, bMin] = b[0].time.split(':').map(Number);
-            return (aHour * 60 + aMin) - (bHour * 60 + bMin);
-        });
-        
-        // Check spacing between chunks
-        for (let i = 1; i < validChunks.length; i++) {
-            const prevChunkEnd = validChunks[i-1][validChunks[i-1].length - 1];
-            const currentChunkStart = validChunks[i][0];
-            
-            // Calculate time difference
-            const [prevHour, prevMin] = prevChunkEnd.time.split(':').map(Number);
-            const [currentHour, currentMin] = currentChunkStart.time.split(':').map(Number);
-            
-            const prevTimeInMin = prevHour * 60 + prevMin;
-            const currentTimeInMin = currentHour * 60 + currentMin;
-            const timeDiff = currentTimeInMin - prevTimeInMin;
-            
-            // Must be at least 60 minutes apart (more than 1 time frame)
-            if (timeDiff <= 60) {
-                isValid = false;
-                validationMessage = "Time groups must be at least 1 hour apart.";
-                break;
-            }
-        }
-    }
-    
-    // Check for single slots that aren't part of valid chunks
-    if (invalidGroups.length > 0 && invalidGroups.some(group => group.length === 1)) {
-        if (isValid) {
-            isValid = false;
-            validationMessage = "All selected slots must be part of groups of at least 2 adjacent slots.";
-        }
-    }
-    
-    if (!isValid) {
-        alert(validationMessage);
+    if (!validateBookingSelection()) {
         return;
     }
     
@@ -602,36 +660,14 @@ function handleBooking() {
     if (currentUser) {
         window.location.href = 'payment.html';
     } else {
-        loginModal.style.display = 'flex';
+        // Not logged in, show guest login modal
+        if (guestLoginModal) {
+            guestLoginModal.style.display = 'flex';
+        } else {
+            // Fallback to regular login modal
+            loginModal.style.display = 'flex';
+        }
     }
-}
-
-function handleGuestBooking(e) {
-    e.preventDefault();
-    
-    // Get guest information
-    const guestName = document.getElementById('guestName').value;
-    const guestPhone = document.getElementById('guestPhone').value;
-    
-    if (!guestName || !guestPhone) {
-        alert('Please enter your name and phone number');
-        return;
-    }
-    
-    // Create a guest user object
-    const guestUser = {
-        id: 'guest-' + Date.now(),
-        name: guestName,
-        phone: guestPhone,
-        isGuest: true
-    };
-    
-    // Store guest info and selected slots
-    sessionStorage.setItem('guestUser', JSON.stringify(guestUser));
-    sessionStorage.setItem('selectedSlots', JSON.stringify(selectedSlots));
-    
-    // Redirect to guest payment page
-    window.location.href = 'guest-payment.html';
 }
 
 // Helper functions
@@ -672,9 +708,12 @@ function isSlotBookedByUser(courtId, date, time) {
 window.isSlotOccupied = isSlotOccupied;
 window.isSlotBookedByUser = isSlotBookedByUser;
 window.addTimeSlotListeners = addTimeSlotListeners;
-window.toggleSlotSelection = toggleSlotSelection;
-window.formatDisplayTime = formatDisplayTime;
 window.selectedSlots = selectedSlots;
+window.formatDisplayTime = formatDisplayTime;
+window.validateAndToggleSlot = validateAndToggleSlot;
+window.updateBookButtonState = updateBookButtonState;
+window.updateSelectionSummary = updateSelectionSummary;
+window.validateBookingSelection = validateBookingSelection;
 
 // Call init when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', initApp);

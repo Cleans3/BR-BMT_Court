@@ -1007,14 +1007,15 @@ body#booking-page .time-slot {
     animation: pulse 1.5s infinite;
 }
 
+
 /* Update rush hour definition */
 function isRushHour(time, day) {
     const hour = parseInt(time.split(':')[0]);
     const isWeekend = (day === 'Sat' || day === 'Sun');
     
     if (isWeekend) {
-        return hour >= 9 && hour < 23; // 9 AM - 11 PM on weekends
+        return hour >= 9 && hour < 23; 
     } else {
-        return hour >= 17 && hour < 23; // 5 PM - 11 PM on weekdays
+        return hour >= 17 && hour < 23; 
     }
 }
