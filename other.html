@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tuyển giao lưu / Pass sân - Badminton Court Booking</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="logo">BadmintonBooking</div>
+        <nav class="nav-menu">
+            <div class="nav-menu-left">
+                <ul>
+                    <li><a href="index.html" style="margin-left: -10px;">Home</a></li>
+                    <li>
+                        <a href="other.html" class="two-line-menu-item active">
+                            <div>tuyển giao lưu</div>
+                            <div>/ pass sân</div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="nav-menu-right">
+                <ul>
+                    <li><a href="pricing.html">Pricing</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+        </nav>
+        <div class="auth-container" id="authContainer">
+            <button class="btn btn-primary login-btn" id="loginBtn">Login</button>
+        </div>
+    </header>
+    
+    <div class="main-container">
+        <h1 class="page-title">Tuyển giao lưu / Pass sân</h1>
+        
+        <div id="contentArea">
+            <!-- Content will be populated by JavaScript based on login status -->
+        </div>
+    </div>
+    
+    <div class="login-modal" id="loginModal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeLoginBtn">&times;</span>
+            <div class="modal-header">
+                <h2>Login Required</h2>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="Enter your username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter your password" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Login</button>
+                </div>
+                <p class="form-note">Don't have an account? <a href="register.html">Register here</a></p>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const authContainer = document.getElementById('authContainer');
+            const contentArea = document.getElementById('contentArea');
+            const loginBtn = document.getElementById('loginBtn');
+            const loginModal = document.getElementById('loginModal');
+            const closeLoginBtn = document.getElementById('closeLoginBtn');
+            const loginForm = document.getElementById('loginForm');
+            
+            // Check if user is logged in
+            const storedUser = localStorage.getItem('currentUser');
+            let currentUser = null;
+            
+            if (storedUser) {
+                currentUser = JSON.parse(storedUser);
+                
+                // Update auth display
+                let adminButton = '';
+                if (currentUser.isAdmin || currentUser.username === 'admint') {
+                    adminButton = `
+                        <a href="admin/dashboard.html" class="admin-dashboard-btn">
+                            <i class="fas fa-cogs"></i> Admin Dashboard
+                        </a>
+                    `;
+                }
+                
+                authContainer.innerHTML = `
+                    <div class="user-info">
+                        <span class="user-name">Welcome, ${currentUser.name}</span>
+                    </div>
+                    ${adminButton}
+                    <button class="btn btn-danger" id="logoutBtn">Logout</button>
+                `;
+                
+                document.getElementById('logoutBtn').addEventListener('click', function() {
+                    localStorage.removeItem('currentUser');
+                    window.location.reload();
+                });
+                
+                // Show content for logged in users
+                contentArea.innerHTML = `
+                    <div class="content-section">
+                        <h2>Tìm kiếm đối thủ giao lưu</h2>
+                        <p>Bạn có thể đăng tìm đối thủ hoặc duyệt các bài đăng hiện có.</p>
+                        
+                        <div class="form-group">
+                            <button class="btn btn-primary">Đăng tin tìm đối thủ</button>
+                            <button class="btn btn-primary">Xem các bài đăng</button>
+                        </div>
+                    </div>
+                    
+                    <div class="content-section">
+                        <h2>Pass sân</h2>
+                        <p>Đăng ký pass sân hoặc tìm sân đang cần pass.</p>
+                        
+                        <div class="form-group">
+                            <button class="btn btn-primary">Đăng tin pass sân</button>
+                            <button class="btn btn-primary">Tìm sân pass</button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // User is not logged in
+                authContainer.innerHTML = `
+                    <button class="btn btn-primary login-btn" id="loginBtn">Login</button>
+                `;
+                
+                // Show login required message
+                contentArea.innerHTML = `
+                    <div class="login-required">
+                        <h2>Login Required</h2>
+                        <p>You need to login to access this feature. Please login to continue.</p>
+                        <button class="btn btn-primary" id="showLoginBtn">Login Now</button>
+                    </div>
+                `;
+                
+                // Add event listener to login button
+                document.getElementById('showLoginBtn').addEventListener('click', function() {
+                    loginModal.style.display = 'flex';
+                });
+            }
+            
+            // Auth related event listeners
+            if (loginBtn) {
+                loginBtn.addEventListener('click', function() {
+                    loginModal.style.display = 'flex';
+                });
+            }
+            
+            if (closeLoginBtn) {
+                closeLoginBtn.addEventListener('click', function() {
+                    loginModal.style.display = 'none';
+                });
+            }
+            
+            window.addEventListener('click', function(e) {
+                if (e.target === loginModal) {
+                    loginModal.style.display = 'none';
+                }
+            });
+            
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const username = document.getElementById('username').value;
+                    const password = document.getElementById('password').value;
+                    
+                    // Get users from localStorage
+                    const storedUsers = JSON.parse(localStorage.getItem('users')) || [];
+                    
+                    const user = storedUsers.find(u => u.username === username && u.password === password);
+                    
+                    if (user) {
+                        // Create a safe version of user without password
+                        const safeUser = { ...user };
+                        delete safeUser.password;
+                        
+                        // Ensure admin flag is set if username is 'admint'
+                        if (safeUser.username === 'admint') {
+                            safeUser.isAdmin = true;
+                        }
+                        
+                        // Save to localStorage
+                        localStorage.setItem('currentUser', JSON.stringify(safeUser));
+                        
+                        // Reload page to show content
+                        window.location.reload();
+                    } else {
+                        alert('Invalid username or password');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

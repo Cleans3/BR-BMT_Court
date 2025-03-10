@@ -4,9 +4,9 @@ const loginModal = document.getElementById('loginModal');
 const closeLoginBtn = document.getElementById('closeLoginBtn');
 const loginForm = document.getElementById('loginForm');
 const authContainer = document.getElementById('authContainer');
-const prevWeekBtn = document.getElementById('prevWeek');
-const nextWeekBtn = document.getElementById('nextWeek');
-const currentWeekDisplay = document.getElementById('currentWeekDisplay');
+const prevDayBtn = document.getElementById('prevDay');
+const nextDayBtn = document.getElementById('nextDay');
+const currentDayDisplay = document.getElementById('currentDayDisplay');
 const selectionSummary = document.getElementById('selectionSummary');
 const selectedCount = document.getElementById('selectedCount');
 const selectionDetails = document.getElementById('selectionDetails');
@@ -15,21 +15,21 @@ const guestBookingModal = document.getElementById('guestBookingModal');
 const closeGuestBtn = document.getElementById('closeGuestBtn');
 const guestBookingForm = document.getElementById('guestBookingForm');
 const guestBookBtn = document.getElementById('guestBookBtn');
-// Get the book button - important to get it AFTER the DOM has loaded
 const bookButton = document.getElementById('bookButton');
 
 // App State
 let currentUser = null;
 let selectedSlots = [];
 let currentDate = new Date();
-let currentCourtPage = 1;
 let currentCourtVenue = 'lizunex'; // Default venue
-const courtCount = 6;
-const courtsPerPage = 6; // Show all 6 courts at once
+const courtCounts = {
+    'lizunex': 6,
+    'vnbc': 9
+};
 const daysInWeek = 7;
 const courtNames = {
     lizunex: ["Court 1", "Court 2", "Court 3", "Court 4", "Court 5", "Court 6"],
-    vnbc: ["Court 1", "Court 2", "Court 3", "Court 4", "Court 5", "Court 6"] // Fixed to start at 1 instead of 7
+    vnbc: ["Court 1", "Court 2", "Court 3", "Court 4", "Court 5", "Court 6", "Court 7", "Court 8", "Court 9"]
 };
 
 // Time slots from 7am to 1am with 30-minute intervals
@@ -40,23 +40,20 @@ for (let hour = 7; hour <= 24; hour++) {
 }
 timeSlots.push('1:00');
 
-// Shorter list of time slots for display in the table headers
-const displayTimeSlots = [];
-for (let hour = 7; hour <= 24; hour += 3) {
-    displayTimeSlots.push(`${hour % 24}:00`);
+// Format time for display
+function formatDisplayTime(timeStr) {
+    // Convert 24-hour format to 12-hour format
+    const [hour, minute] = timeStr.split(':');
+    const hourNum = parseInt(hour);
+    const ampm = hourNum >= 12 ? 'PM' : 'AM';
+    const hour12 = hourNum % 12 || 12;
+    return `${hour12}:${minute} ${ampm}`;
 }
-displayTimeSlots.push('1:00');
 
-// Rush hours (5 PM - 11 PM weekdays, 9 AM - 11 PM weekends)
-function isRushHour(time, day) {
+// Rush hours: 5PM-9PM every day
+function isRushHour(time) {
     const hour = parseInt(time.split(':')[0]);
-    const isWeekend = (day === 'Sat' || day === 'Sun');
-    
-    if (isWeekend) {
-        return hour >= 9 && hour < 23; // 9 AM - 11 PM on weekends
-    } else {
-        return hour >= 17 && hour < 23; // 5 PM - 11 PM on weekdays
-    }
+    return hour >= 17 && hour < 21;
 }
 
 // Mock database for users and bookings
@@ -76,7 +73,6 @@ let bookings = [
 // Initialize the application
 function initApp() {
     console.log("Initializing app...");
-    setupEventListeners();
     loadUserFromStorage();
     loadBookingsFromStorage();
     
@@ -87,18 +83,6 @@ function initApp() {
         saveUserToStorage(currentUser);
     }
     
-    updateAuthDisplay();
-    updateWeekDisplay();
-    renderCourts();
-    
-    // Check if admin notification should be shown
-    if (isUserAdmin()) {
-        const adminNotice = document.getElementById('adminNotice');
-        if (adminNotice) {
-            adminNotice.style.display = 'block';
-        }
-    }
-
     // Force localStorage to save the admin user if not present
     const storedUsers = JSON.parse(localStorage.getItem('users')) || [];
     const adminExists = storedUsers.some(user => user.username === 'admint' && user.isAdmin === true);
@@ -106,6 +90,20 @@ function initApp() {
     if (!adminExists) {
         storedUsers.push({ id: storedUsers.length + 1, username: 'admint', password: 'minhbeo', name: 'Admin User', isAdmin: true });
         localStorage.setItem('users', JSON.stringify(storedUsers));
+    }
+    
+    // Setup event listeners
+    setupEventListeners();
+    
+    // Update auth display
+    updateAuthDisplay();
+    
+    // Check if admin notification should be shown
+    if (isUserAdmin()) {
+        const adminNotice = document.getElementById('adminNotice');
+        if (adminNotice) {
+            adminNotice.style.display = 'block';
+        }
     }
     
     console.log("App initialization complete");
@@ -132,6 +130,7 @@ function isUserAdmin() {
 // Setup event listeners
 function setupEventListeners() {
     console.log("Setting up event listeners");
+    
     // Auth related
     if (loginBtn) {
         loginBtn.addEventListener('click', openLoginModal);
@@ -150,23 +149,19 @@ function setupEventListeners() {
         loginForm.addEventListener('submit', handleLogin);
     }
     
-    // Week navigation
-    if (prevWeekBtn) {
-        prevWeekBtn.addEventListener('click', () => navigateWeek(-7));
-    }
-    
-    if (nextWeekBtn) {
-        nextWeekBtn.addEventListener('click', () => navigateWeek(7));
-    }
-    
     // Court tabs navigation
     if (courtTabs && courtTabs.length > 0) {
         courtTabs.forEach(tab => {
             tab.addEventListener('click', () => {
+                courtTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
                 const venue = tab.getAttribute('data-venue');
                 currentCourtVenue = venue; // Switch venue
-                updateCourtTabs();
-                renderCourts();
+                
+                if (typeof window.renderSingleDayTable === 'function') {
+                    window.renderSingleDayTable();
+                }
             });
         });
     }
@@ -180,12 +175,27 @@ function setupEventListeners() {
         closeGuestBtn.addEventListener('click', closeGuestBookingModal);
     }
     
-    // Get the book button - we need to get this AFTER the DOM has loaded
-    const bookBtn = document.getElementById('bookButton');
+    // Guest continue button
+    const guestContinueBtn = document.getElementById('guestContinueBtn');
+    if (guestContinueBtn) {
+        guestContinueBtn.addEventListener('click', function() {
+            // Create a default guest user
+            const guestUser = {
+                id: 'guest-' + Date.now(),
+                name: 'Guest User',
+                isGuest: true
+            };
+            sessionStorage.setItem('guestUser', JSON.stringify(guestUser));
+            sessionStorage.setItem('selectedSlots', JSON.stringify(selectedSlots));
+            
+            // Redirect to guest payment page
+            window.location.href = 'guest-payment.html';
+        });
+    }
     
     // Booking button
-    if (bookBtn) {
-        bookBtn.addEventListener('click', handleBooking);
+    if (bookButton) {
+        bookButton.addEventListener('click', handleBooking);
         console.log("Booking button event listener added");
     } else {
         console.error("Book button not found!");
@@ -231,14 +241,21 @@ function handleLogin(e) {
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
     
-    const user = users.find(u => u.username === username && u.password === password);
+    // Load users from localStorage
+    const storedUsers = JSON.parse(localStorage.getItem('users')) || users;
+    
+    const user = storedUsers.find(u => u.username === username && u.password === password);
     
     if (user) {
         currentUser = user;
         saveUserToStorage(user);
         updateAuthDisplay();
         closeLoginModal();
-        renderCourts(); // Re-render to show user's bookings
+        
+        // Re-render the table to show user's bookings
+        if (typeof window.renderSingleDayTable === 'function') {
+            window.renderSingleDayTable();
+        }
         
         // Show admin notice if they're an admin
         if (user.isAdmin) {
@@ -256,7 +273,11 @@ function logout() {
     currentUser = null;
     localStorage.removeItem('currentUser');
     updateAuthDisplay();
-    renderCourts(); // Re-render to hide user's bookings
+    
+    // Re-render the table to hide user's bookings
+    if (typeof window.renderSingleDayTable === 'function') {
+        window.renderSingleDayTable();
+    }
     
     // Hide admin notice
     const adminNotice = document.getElementById('adminNotice');
@@ -323,221 +344,7 @@ function updateAuthDisplay() {
     }
 }
 
-// Week navigation functions
-function navigateWeek(days) {
-    currentDate.setDate(currentDate.getDate() + days);
-    updateWeekDisplay();
-    renderCourts();
-}
-
-function updateWeekDisplay() {
-    if (!currentWeekDisplay) return;
-    
-    const weekStart = new Date(currentDate);
-    weekStart.setDate(currentDate.getDate() - currentDate.getDay() + (currentDate.getDay() === 0 ? -6 : 1)); // Start from Monday
-    
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekStart.getDate() + 6); // End on Sunday
-    
-    const options = { month: 'long', day: 'numeric' };
-    const weekStartFormatted = weekStart.toLocaleDateString('en-US', options);
-    const weekEndFormatted = weekEnd.toLocaleDateString('en-US', options);
-    
-    currentWeekDisplay.textContent = `${weekStartFormatted} - ${weekEndFormatted}, ${weekEnd.getFullYear()}`;
-}
-
-// Generate court rendering
-function renderCourts() {
-    console.log("Rendering courts...");
-    if (!courtsContainer) {
-        console.error("Courts container not found!");
-        return;
-    }
-    
-    courtsContainer.innerHTML = '';
-    
-    // Get the Monday of current week
-    const weekStart = new Date(currentDate);
-    weekStart.setDate(currentDate.getDate() - currentDate.getDay() + (currentDate.getDay() === 0 ? -6 : 1));
-    
-    // Get the courts for the current venue
-    const venueCourtNames = courtNames[currentCourtVenue];
-    
-    for (let courtIndex = 0; courtIndex < venueCourtNames.length; courtIndex++) {
-        // Calculate courtId - courts are numbered 1-6 for each venue separately
-        const courtId = courtIndex + 1;
-        
-        const courtElement = document.createElement('div');
-        courtElement.className = 'court-schedule';
-        
-        courtElement.innerHTML = `
-            <div class="court-header">
-                <h2>${venueCourtNames[courtIndex]}</h2>
-            </div>
-            <div class="days-container">
-                <div class="table-responsive" style="overflow-x: auto; max-width: 100%;">
-                    ${generateDaysForCourt(courtId, weekStart)}
-                </div>
-            </div>
-        `;
-        
-        courtsContainer.appendChild(courtElement);
-    }
-    
-    // Add event listeners to time slots after rendering
-    addTimeSlotListeners();
-    console.log("Courts rendered");
-}
-
-function generateDaysForCourt(courtId, weekStart) {
-    // Create array of days and dates
-    const days = [];
-    for (let dayOffset = 0; dayOffset < daysInWeek; dayOffset++) {
-        const dayDate = new Date(weekStart);
-        dayDate.setDate(weekStart.getDate() + dayOffset);
-        
-        const dayOfWeek = dayDate.toLocaleString('en-US', { weekday: 'short' });
-        const formattedDate = dayDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        const dateString = formatDateToYMD(dayDate);
-        
-        days.push({
-            dayOfWeek,
-            formattedDate,
-            dateString
-        });
-    }
-    
-    // Create table structure with hour markings for every hour
-    let tableHtml = `
-        <table class="court-schedule-table" style="width: 2000px;">
-            <thead>
-                <tr>
-                    <th>Day</th>
-                    <th colspan="2">7AM</th>
-                    <th colspan="2">8AM</th>
-                    <th colspan="2">9AM</th>
-                    <th colspan="2">10AM</th>
-                    <th colspan="2">11AM</th>
-                    <th colspan="2">12PM</th>
-                    <th colspan="2">1PM</th>
-                    <th colspan="2">2PM</th>
-                    <th colspan="2">3PM</th>
-                    <th colspan="2">4PM</th>
-                    <th colspan="2">5PM</th>
-                    <th colspan="2">6PM</th>
-                    <th colspan="2">7PM</th>
-                    <th colspan="2">8PM</th>
-                    <th colspan="2">9PM</th>
-                    <th colspan="2">10PM</th>
-                    <th colspan="2">11PM</th>
-                    <th colspan="2">12AM</th>
-                    <th>1AM</th>
-                </tr>
-                <tr>
-                    <th></th>
-                    <!-- 7AM -->
-                    <th>:00</th><th>:30</th>
-                    <!-- 8AM -->
-                    <th>:00</th><th>:30</th>
-                    <!-- 9AM -->
-                    <th>:00</th><th>:30</th>
-                    <!-- 10AM -->
-                    <th>:00</th><th>:30</th>
-                    <!-- 11AM -->
-                    <th>:00</th><th>:30</th>
-                    <!-- 12PM -->
-                    <th>:00</th><th>:30</th>
-                    <!-- 1PM -->
-                    <th>:00</th><th>:30</th>
-                    <!-- 2PM -->
-                    <th>:00</th><th>:30</th>
-                    <!-- 3PM -->
-                    <th>:00</th><th>:30</th>
-                    <!-- 4PM -->
-                    <th>:00</th><th>:30</th>
-                    <!-- 5PM -->
-                    <th>:00</th><th>:30</th>
-                    <!-- 6PM -->
-                    <th>:00</th><th>:30</th>
-                    <!-- 7PM -->
-                    <th>:00</th><th>:30</th>
-                    <!-- 8PM -->
-                    <th>:00</th><th>:30</th>
-                    <!-- 9PM -->
-                    <th>:00</th><th>:30</th>
-                    <!-- 10PM -->
-                    <th>:00</th><th>:30</th>
-                    <!-- 11PM -->
-                    <th>:00</th><th>:30</th>
-                    <!-- 12AM -->
-                    <th>:00</th><th>:30</th>
-                    <!-- 1AM -->
-                    <th>:00</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
-    
-    // Add rows for each day
-    for (const day of days) {
-        tableHtml += `
-            <tr>
-                <td style="padding: 5px; min-width: 80px;">
-                    <strong>${day.dayOfWeek}</strong><br>
-                    <span class="day-date">${day.formattedDate}</span>
-                </td>
-                ${generateTimeSlotsForDay(courtId, day.dateString, day.dayOfWeek)}
-            </tr>
-        `;
-    }
-    
-    tableHtml += `
-            </tbody>
-        </table>
-    `;
-    
-    return tableHtml;
-}
-
-function generateTimeSlotsForDay(courtId, dateString, dayOfWeek) {
-    let slotsHtml = '';
-    
-    // Calculate the effective court ID based on venue
-    // For VNBC courts, add offset to court IDs (1-6 become 7-12)
-    const effectiveCourtId = currentCourtVenue === 'vnbc' ? courtId + 6 : courtId;
-    
-    for (const time of timeSlots) {
-        const isOccupied = isSlotOccupied(effectiveCourtId, dateString, time);
-        const isUserBooked = isSlotBookedByUser(effectiveCourtId, dateString, time);
-        const isRushHourSlot = isRushHour(time, dayOfWeek);
-        
-        let slotClass = 'time-slot';
-        if (isUserBooked) {
-            slotClass += ' user-booked';
-        } else if (isOccupied) {
-            slotClass += ' occupied';
-        } else {
-            slotClass += ' available';
-        }
-        
-        if (isRushHourSlot) {
-            slotClass += ' rush-hour';
-        }
-        
-        slotsHtml += `
-            <td>
-                <div class="${slotClass}" 
-                    data-court="${effectiveCourtId}" 
-                    data-date="${dateString}" 
-                    data-time="${time}" 
-                    data-rush="${isRushHourSlot ? 'true' : 'false'}"></div>
-            </td>
-        `;
-    }
-    
-    return slotsHtml;
-}
-
+// Add event listeners to time slots
 function addTimeSlotListeners() {
     console.log("Adding time slot listeners");
     const slots = document.querySelectorAll('.time-slot');
@@ -558,19 +365,16 @@ function addTimeSlotListeners() {
 function handleTimeSlotClick(event) {
     const timeSlot = event.currentTarget;
     
-    // Don't allow interaction with occupied slots
     if (timeSlot.classList.contains('occupied')) {
         alert('This slot is already booked.');
         return;
     }
     
-    // Don't allow toggling user's already booked slots
     if (timeSlot.classList.contains('user-booked')) {
         return;
     }
     
-    // Allow selection even if not logged in
-    toggleSlotSelection.call(timeSlot);
+    validateAndToggleSlot.call(timeSlot);
 }
 
 function toggleSlotSelection() {
@@ -664,59 +468,144 @@ function updateSelectionSummary() {
 }
 
 function getVenueNameFromCourtId(courtId) {
-    // VNBC courts are 7-12, Lizunex are 1-6
+    // VNBC courts are 7-15, Lizunex are 1-6
     return courtId > 6 ? 'VNBC' : 'Lizunex';
 }
 
 function getCourtDisplayName(courtId) {
-    // Convert to display name (Court 1-6 for each venue)
+    // Convert to display name (Court 1-6 for Lizunex, 1-9 for VNBC)
     return `Court ${courtId > 6 ? courtId - 6 : courtId}`;
 }
 
 function handleBooking() {
-    console.log("Handling booking...");
-    // Get the bookButton directly to ensure we have the latest reference
-    const bookBtn = document.getElementById('bookButton');
-    
     if (!selectedSlots.length) {
-        console.log("No slots selected");
+        alert('Please select at least one time slot');
         return;
     }
     
-    if (bookBtn && !bookBtn.classList.contains('active')) {
-        console.log("Book button is not active");
+    // Validate booking requirements
+    // Group selections by court and date
+    const groupedByCourtDate = {};
+    
+    selectedSlots.forEach(slot => {
+        const key = `${slot.courtId}-${slot.date}`;
+        if (!groupedByCourtDate[key]) {
+            groupedByCourtDate[key] = [];
+        }
+        groupedByCourtDate[key].push(slot);
+    });
+    
+    // Check each group for continuous chunks of at least 2 slots
+    const validChunks = [];
+    const invalidGroups = [];
+    
+    for (const [key, slots] of Object.entries(groupedByCourtDate)) {
+        // First, sort slots by time
+        slots.sort((a, b) => {
+            const [aHour, aMin] = a.time.split(':').map(Number);
+            const [bHour, bMin] = b.time.split(':').map(Number);
+            return (aHour * 60 + aMin) - (bHour * 60 + bMin);
+        });
+        
+        // Find continuous chunks
+        let currentChunk = [slots[0]];
+        const chunks = [];
+        
+        for (let i = 1; i < slots.length; i++) {
+            const prevSlot = slots[i-1];
+            const currentSlot = slots[i];
+            
+            // Check if slots are adjacent (30 min apart)
+            const [prevHour, prevMin] = prevSlot.time.split(':').map(Number);
+            const [currentHour, currentMin] = currentSlot.time.split(':').map(Number);
+            
+            const prevTimeInMin = prevHour * 60 + prevMin;
+            const currentTimeInMin = currentHour * 60 + currentMin;
+            
+            if (currentTimeInMin - prevTimeInMin === 30) {
+                // Adjacent, add to current chunk
+                currentChunk.push(currentSlot);
+            } else {
+                // Not adjacent, start new chunk if current one has at least 2 slots
+                if (currentChunk.length >= 2) {
+                    chunks.push([...currentChunk]);
+                } else {
+                    invalidGroups.push([...currentChunk]);
+                }
+                currentChunk = [currentSlot];
+            }
+        }
+        
+        // Add the final chunk if it has at least 2 slots
+        if (currentChunk.length >= 2) {
+            chunks.push(currentChunk);
+        } else {
+            invalidGroups.push(currentChunk);
+        }
+        
+        // Add valid chunks to overall list
+        validChunks.push(...chunks);
+    }
+    
+    // Validation criteria
+    let isValid = true;
+    let validationMessage = "";
+    
+    if (validChunks.length === 0) {
+        isValid = false;
+        validationMessage = "Please select at least 2 adjacent time slots.";
+    } else if (validChunks.length > 1) {
+        // Sort chunks by start time
+        validChunks.sort((a, b) => {
+            const [aHour, aMin] = a[0].time.split(':').map(Number);
+            const [bHour, bMin] = b[0].time.split(':').map(Number);
+            return (aHour * 60 + aMin) - (bHour * 60 + bMin);
+        });
+        
+        // Check spacing between chunks
+        for (let i = 1; i < validChunks.length; i++) {
+            const prevChunkEnd = validChunks[i-1][validChunks[i-1].length - 1];
+            const currentChunkStart = validChunks[i][0];
+            
+            // Calculate time difference
+            const [prevHour, prevMin] = prevChunkEnd.time.split(':').map(Number);
+            const [currentHour, currentMin] = currentChunkStart.time.split(':').map(Number);
+            
+            const prevTimeInMin = prevHour * 60 + prevMin;
+            const currentTimeInMin = currentHour * 60 + currentMin;
+            const timeDiff = currentTimeInMin - prevTimeInMin;
+            
+            // Must be at least 60 minutes apart (more than 1 time frame)
+            if (timeDiff <= 60) {
+                isValid = false;
+                validationMessage = "Time groups must be at least 1 hour apart.";
+                break;
+            }
+        }
+    }
+    
+    // Check for single slots that aren't part of valid chunks
+    if (invalidGroups.length > 0 && invalidGroups.some(group => group.length === 1)) {
+        if (isValid) {
+            isValid = false;
+            validationMessage = "All selected slots must be part of groups of at least 2 adjacent slots.";
+        }
+    }
+    
+    if (!isValid) {
+        alert(validationMessage);
         return;
     }
     
-    console.log(`Processing booking for ${selectedSlots.length} selected slots`);
-    
-    // Store the selections in sessionStorage regardless of login status
     sessionStorage.setItem('selectedSlots', JSON.stringify(selectedSlots));
     
     if (currentUser) {
-        // Logged in user - redirect to regular payment page
-        console.log("User is logged in, redirecting to payment.html");
         window.location.href = 'payment.html';
     } else {
-        // Guest user - show guest information form OR redirect directly
-        console.log("User is not logged in, handling as guest");
-        
-        if (guestBookingModal) {
-            console.log("Showing guest booking modal");
-            guestBookingModal.style.display = 'flex';
-        } else {
-            console.log("Guest booking modal not found, redirecting to guest-payment.html");
-            // Create a default guest user
-            const guestUser = {
-                id: 'guest-' + Date.now(),
-                name: 'Guest User',
-                isGuest: true
-            };
-            sessionStorage.setItem('guestUser', JSON.stringify(guestUser));
-            window.location.href = 'guest-payment.html';
-        }
+        loginModal.style.display = 'flex';
     }
 }
+
 function handleGuestBooking(e) {
     e.preventDefault();
     
@@ -758,15 +647,6 @@ function formatDisplayDate(dateStr) {
     return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
-function formatDisplayTime(timeStr) {
-    // Convert 24-hour format to 12-hour format
-    const [hour, minute] = timeStr.split(':');
-    const hourNum = parseInt(hour);
-    const ampm = hourNum >= 12 ? 'PM' : 'AM';
-    const hour12 = hourNum % 12 || 12;
-    return `${hour12}:${minute} ${ampm}`;
-}
-
 function isSlotOccupied(courtId, date, time) {
     // Check if the slot is booked by anyone
     return bookings.some(booking => 
@@ -787,122 +667,14 @@ function isSlotBookedByUser(courtId, date, time) {
         booking.userId === currentUser.id
     );
 }
-document.addEventListener('DOMContentLoaded', function() {
-    const bookBtn = document.getElementById('bookButton');
-    if (bookBtn) {
-        // Override any existing listeners with a new one
-        bookBtn.addEventListener('click', function() {
-            if (selectedSlots.length > 0) {
-                // Save slots to session storage
-                sessionStorage.setItem('selectedSlots', JSON.stringify(selectedSlots));
-                
-                // Create a default guest user and go directly to payment
-                const guestUser = {
-                    id: 'guest-' + Date.now(),
-                    name: 'Guest User',
-                    isGuest: true
-                };
-                sessionStorage.setItem('guestUser', JSON.stringify(guestUser));
-                window.location.href = 'guest-payment.html';
-            } else {
-                alert('Please select at least one time slot');
-            }
-        });
-    }
-});
-// Add these custom styles to your booking.js file
-// Update the time slot styles
-document.addEventListener('DOMContentLoaded', function() {
-    // Add custom CSS for the time slots
-    const styleElement = document.createElement('style');
-    styleElement.textContent = `
-        /* Rush hour styling */
-        .time-slot.rush-hour.available {
-            background-color: #fff9e6 !important; /* Light yellow */
-        }
-        
-        .time-slot.rush-hour.selected {
-            background-color: var(--selected-color) !important;
-        }
-        
-        /* Your booking styling */
-        .time-slot.user-booked {
-            background-color: #74b9ff !important; /* Bright blue */
-            color: white !important;
-        }
-        
-        /* Available slot styling */
-        .time-slot.available {
-            background-color: #f8f9fa !important; /* Very light gray */
-        }
-        
-        /* Selected slot styling */
-        .time-slot.selected {
-            background-color: var(--selected-color) !important;
-            color: white !important;
-        }
-    `;
-    document.head.appendChild(styleElement);
-    
-    // Updated handleBooking function
-    function updatedHandleBooking() {
-        console.log("Handling booking...");
-        
-        if (!selectedSlots.length) {
-            console.log("No slots selected");
-            return;
-        }
-        
-        console.log(`Processing booking for ${selectedSlots.length} selected slots`);
-        
-        // Store the selections in sessionStorage regardless of login status
-        sessionStorage.setItem('selectedSlots', JSON.stringify(selectedSlots));
-        
-        // Show the login modal with guest option
-        const loginModal = document.getElementById('loginModal');
-        if (loginModal) {
-            loginModal.style.display = 'flex';
-            
-            // Set up the guest continue button
-            const guestContinueBtn = document.getElementById('guestContinueBtn');
-            if (guestContinueBtn) {
-                guestContinueBtn.addEventListener('click', function() {
-                    // Create a default guest user
-                    const guestUser = {
-                        id: 'guest-' + Date.now(),
-                        name: 'Guest User',
-                        isGuest: true
-                    };
-                    sessionStorage.setItem('guestUser', JSON.stringify(guestUser));
-                    
-                    // Redirect to guest payment page
-                    window.location.href = 'guest-payment.html';
-                });
-            }
-        } else {
-            console.error("Login modal not found!");
-        }
-    }
-    
-    // Override the original handleBooking function
-    const bookBtn = document.getElementById('bookButton');
-    if (bookBtn) {
-        // Remove existing event listeners
-        const newBookBtn = bookBtn.cloneNode(true);
-        bookBtn.parentNode.replaceChild(newBookBtn, bookBtn);
-        
-        // Add our updated handler
-        newBookBtn.addEventListener('click', function() {
-            if (currentUser) {
-                // If logged in, go directly to payment
-                sessionStorage.setItem('selectedSlots', JSON.stringify(selectedSlots));
-                window.location.href = 'payment.html';
-            } else {
-                // Otherwise show login/guest modal
-                updatedHandleBooking();
-            }
-        });
-    }
-});
+
+// Make these functions available to the global scope for the single day table
+window.isSlotOccupied = isSlotOccupied;
+window.isSlotBookedByUser = isSlotBookedByUser;
+window.addTimeSlotListeners = addTimeSlotListeners;
+window.toggleSlotSelection = toggleSlotSelection;
+window.formatDisplayTime = formatDisplayTime;
+window.selectedSlots = selectedSlots;
+
 // Call init when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', initApp);
